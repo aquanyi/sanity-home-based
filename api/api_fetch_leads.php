@@ -56,6 +56,13 @@ try {
     $totalSlots    = $pdo->query("SELECT COUNT(*) FROM timetable_slots")->fetchColumn();
     $pendingLeads  = $pdo->query("SELECT COUNT(*) FROM enrollment_inquiries WHERE status = 'pending'")->fetchColumn();
 
+    $hasAdmNo  = false;
+    $hasStaff  = false;
+    try { $pdo->query("SELECT admission_no FROM students LIMIT 0"); $hasAdmNo = true;  } catch (Exception $ex) {}
+    try { $pdo->query("SELECT staff_id   FROM students LIMIT 0"); $hasStaff = true;  } catch (Exception $ex) {}
+    $admCol   = $hasAdmNo  ? 'u.admission_no' : "NULL AS admission_no";
+    $staffCol = $hasStaff  ? 'u.staff_id'     : "NULL AS staff_id";
+
     // Users list with joined student details if student, or defaults
     $usersStmt = $pdo->query("
         SELECT id, name, email, phone, 'admin' AS role, created_at, NULL AS grade_level, NULL as subjects, NULL as subject_ids, NULL AS admission_no, NULL AS staff_id, NULL AS profile_id FROM admins
@@ -76,7 +83,7 @@ try {
                (SELECT GROUP_CONCAT(ss.subject_id SEPARATOR ',')
                 FROM student_subjects ss
                 WHERE ss.student_id = sp.id) as subject_ids,
-               u.admission_no, u.staff_id, sp.id AS profile_id
+               {$admCol}, {$staffCol}, sp.id AS profile_id
         FROM students u
         LEFT JOIN student_profiles sp ON u.id = sp.user_id
         LEFT JOIN parents p ON sp.parent_id = p.id

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 header('Content-Type: text/html; charset=utf-8');
 require_once 'security.php';
 start_secure_session();
@@ -6665,10 +6665,10 @@ function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
         if (!btn.hasAttribute('data-original-html')) {
             btn.setAttribute('data-original-html', btn.innerHTML);
         }
-        btn.disabled = True;
-        btn.innerHTML = <i class="fa-solid fa-spinner fa-spin"></i> ;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + loadingText;
     } else {
-        btn.disabled = False;
+        btn.disabled = false;
         if (btn.hasAttribute('data-original-html')) {
             btn.innerHTML = btn.getAttribute('data-original-html');
         }
