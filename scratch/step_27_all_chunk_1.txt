@@ -1,0 +1,81 @@
+﻿    </div>
+
+    <!-- EXTRA EXPENSES -->
+    <div id="section-expenses" class="section">
+        <div class="page-header">
+            <h1>Extra Expenses</h1>
+            <p>Track and manage all operational expenses â€” inventory, utilities, repairs, and petty cash.</p>
+        </div>
+
+        <!-- Category Summary Cards -->
+        <div class="metrics-grid" style="margin-bottom:28px;">
+            <div class="metric-card" style="border-left:4px solid #3B82F6;">
+                <div class="metric-info"><h4>Inventory</h4><p id="exp-total-inventory" style="font-size:1.3rem;">KES 0</p></div>
+                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(59,130,246,0.25));color:#3B82F6;"><i class="fa-solid fa-boxes-stacked"></i></div>
+            </div>
+            <div class="metric-card" style="border-left:4px solid #10B981;">
+                <div class="metric-info"><h4>Utilities</h4><p id="exp-total-utility" style="font-size:1.3rem;">KES 0</p></div>
+                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.25));color:#10B981;"><i class="fa-solid fa-bolt"></i></div>
+            </div>
+            <div class="metric-card" style="border-left:4px solid #F59E0B;">
+                <div class="metric-info"><h4>General Repairs</h4><p id="exp-total-general_repairs" style="font-size:1.3rem;">KES 0</p></div>
+                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(245,158,11,0.25));color:#F59E0B;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            </div>
+            <div class="metric-card" style="border-left:4px solid #8B5CF6;">
+                <div class="metric-info"><h4>Petty Cash</h4><p id="exp-total-petty_cash" style="font-size:1.3rem;">KES 0</p></div>
+                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(139,92,246,0.25));color:#8B5CF6;"><i class="fa-solid fa-mug-hot"></i></div>
+            </div>
+        </div>
+
+        <!-- Sub-category Tabs -->
+        <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;">
+            <button id="exp-btn-inventory"       class="btn btn-primary" onclick="setExpenseTab('inventory')"><i class="fa-solid fa-boxes-stacked"></i> Inventory</button>
+            <button id="exp-btn-utility"         class="btn btn-outline" onclick="setExpenseTab('utility')"><i class="fa-solid fa-bolt"></i> Utilities</button>
+            <button id="exp-btn-general_repairs" class="btn btn-outline" onclick="setExpenseTab('general_repairs')"><i class="fa-solid fa-screwdriver-wrench"></i> General Repairs</button>
+            <button id="exp-btn-petty_cash"      class="btn btn-outline" onclick="setExpenseTab('petty_cash')"><i class="fa-solid fa-mug-hot"></i> Petty Cash</button>
+        </div>
+
+        <!-- Active Category Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2 id="exp-panel-title">Inventory Management</h2>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <select id="exp-filter-month" class="form-control" style="min-width:160px;padding:8px 12px;" onchange="loadExpenses()">
+                        <option value="">All Months</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="openExpenseModal()">
+                        <i class="fa-solid fa-plus"></i> Add Expense
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Description -->
+            <div id="exp-category-hint" style="background:var(--cream);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:0.88rem;color:var(--gray-600);border-left:4px solid var(--accent);"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item / Name</th>
+                            <th>Description</th>
+                            <th>Reference</th>
+                            <th>Recorded By</th>
+                            <th>Amount (KES)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-tbody">
+                        <tr><td colspan="7" class="empty-row">Loadingâ€¦</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="expenses-total-row" style="display:none;background:var(--cream);border-radius:10px;padding:14px 20px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
+                <strong style="color:var(--primary);">Showing <span id="expenses-count">0</span> records</strong>
+                <strong style="color:var(--primary);font-size:1.1rem;">Total: KES <span id="expenses-subtotal">0.00</span></strong>
+            </div>
+        </div>
+    </div>
+
+</main>

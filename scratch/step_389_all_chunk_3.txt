@@ -1,0 +1,370 @@
+﻿// Init
+window.onload = () => {
+    loadSessions();
+    const savedTab = localStorage.getItem('accounts_dashboard_active_tab');
+    if (savedTab) {
+        switchTab(savedTab);
+    }
+};
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PARENT INVOICE GENERATOR MODULE
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+let piData = null;      // current invoice data from API
+let piInvoiceRows = []; // editable rows array {date, tutor, type, amount}
+let piStudentInfo = {}; // {parent_name, parent_email, student_name, grade_level}
+let piPaidTotal = 0;    // previously paid amount for this student
+let piInvoiceCounter = 1;
+
+function initParentInvoice() {
+    // Set today's date defaults
+    const today = new Date().toISOString().split('T')[0];
+    const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const piFrom = document.getElementById('pi-from');
+    const piTo   = document.getElementById('pi-to');
+    const piDue  = document.getElementById('pi-due');
+    if (piFrom && !piFrom.value) piFrom.value = firstOfMonth;
+    if (piTo   && !piTo.value)   piTo.value   = today;
+    if (piDue  && !piDue.value) {
+        const due = new Date(); due.setDate(due.getDate() + 7);
+        piDue.value = due.toISOString().split('T')[0];
+    }
+
+    // Set invoice date & number
+    document.getElementById('pi-inv-date').textContent = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+    document.getElementById('pi-inv-number').textContent = 'INV-' + String(piInvoiceCounter).padStart(3,'0');
+
+    // Sync bank fields to preview
+    piSyncBank();
+
+    // Load students dropdown
+    fetch('api/api_accounts.php?action=students_list')
+        .then(r => r.json())
+        .then(d => {
+            const sel = document.getElementById('pi-student');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">-- Select Student --</option>';
+            (d.students || []).forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${s.student_name} (${s.grade_level})</option>`;
+            });
+        });
+}
+
+function piLoadSessions() {
+    const studentId = document.getElementById('pi-student').value;
+    const fromDate  = document.getElementById('pi-from').value;
+    const toDate    = document.getElementById('pi-to').value;
+    if (!studentId) return;
+
+    // Show loading state
+    document.getElementById('pi-empty-state').style.display = 'none';
+    document.getElementById('pi-preview-area').style.display = 'none';
+    document.getElementById('pi-sessions-tbody').innerHTML = '<tr><td colspan="6" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading sessionsâ€¦</td></tr>';
+
+    const url = `api/api_accounts.php?action=get_invoice&student_id=${studentId}&month=`;
+    fetch(url)
+        .then(r => r.json())
+        .then(d => {
+            if (d.status !== 'success') { showAlert('error', d.message); return; }
+            piData = d;
+
+            // Store student info
+            piStudentInfo = {
+                parent_name:   d.student.parent_name  || 'â€”',
+                parent_email:  d.student.parent_email || 'â€”',
+                student_name:  d.student.student_name || 'â€”',
+                grade_level:   d.student.grade_level  || 'â€”'
+            };
+
+            // Previously paid
+            piPaidTotal = parseFloat(d.total_paid) || 0;
+
+            // Filter lessons by date range
+            let lessons = d.lessons || [];
+            if (fromDate) lessons = lessons.filter(l => l.lesson_date >= fromDate);
+            if (toDate)   lessons = lessons.filter(l => l.lesson_date <= toDate);
+
+            // Build editable rows
+            piInvoiceRows = lessons.map(l => ({
+                date:   l.lesson_date,
+                tutor:  l.teacher_name,
+                type:   piVenueLabel(l.venue_type),
+                amount: parseFloat(l.price) || 0
+            }));
+
+            piRenderPreview();
+        })
+        .catch(() => showAlert('error', 'Network error loading invoice data.'));
+}
+
+function piVenueLabel(v) {
+    if (v === 'online_meet')  return 'Online (Google Meet)';
+    if (v === 'online_zoom')  return 'Online (Zoom)';
+    if (v === 'school')       return 'School (1-on-1)';
+    if (v === 'home_visit')   return 'Home Visit';
+    return v;
+}
+
+function piRenderPreview() {
+    // Show preview area
+    document.getElementById('pi-empty-state').style.display   = 'none';
+    document.getElementById('pi-preview-area').style.display  = 'block';
+
+    // Student / parent meta
+    document.getElementById('pi-parent-name-preview').textContent  = piStudentInfo.parent_name;
+    document.getElementById('pi-parent-email-preview').textContent = piStudentInfo.parent_email;
+    document.getElementById('pi-student-name-preview').textContent = piStudentInfo.student_name;
+    document.getElementById('pi-student-grade-preview').textContent = 'Grade: ' + piStudentInfo.grade_level;
+
+    const from = document.getElementById('pi-from').value;
+    const to   = document.getElementById('pi-to').value;
+    document.getElementById('pi-period-preview').textContent = from && to ? `Period: ${from} â€“ ${to}` : '';
+
+    // Note
+    const note = document.getElementById('pi-note').value.trim();
+    const noteEl = document.getElementById('pi-note-preview');
+    if (note) { noteEl.textContent = note; noteEl.style.display = 'block'; }
+    else       { noteEl.style.display = 'none'; }
+
+    // Sessions table (editable)
+    const tbody = document.getElementById('pi-sessions-tbody');
+    if (!piInvoiceRows.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No sessions found for this date range.</td></tr>';
+    } else {
+        tbody.innerHTML = piInvoiceRows.map((row, i) => `
+            <tr id="pi-row-${i}">
+                <td style="color:var(--gray-600);font-weight:700;">${i+1}</td>
+                <td><input type="date" value="${row.date}" class="form-control" style="padding:6px 8px;font-size:0.85rem;" onchange="piUpdateRow(${i},'date',this.value)"></td>
+                <td><input type="text" value="${row.tutor}" class="form-control" style="padding:6px 8px;font-size:0.85rem;" onchange="piUpdateRow(${i},'tutor',this.value)"></td>
+                <td><input type="text" value="${row.type}" class="form-control" style="padding:6px 8px;font-size:0.85rem;" onchange="piUpdateRow(${i},'type',this.value)"></td>
+                <td><input type="number" value="${row.amount.toFixed(2)}" class="form-control" style="padding:6px 8px;font-size:0.85rem;width:110px;" step="0.01" onchange="piUpdateRow(${i},'amount',parseFloat(this.value)||0)"></td>
+                <td><button class="btn btn-sm" style="background:#FEE2E2;color:#DC2626;border:none;" onclick="piRemoveRow(${i})"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>`).join('');
+    }
+
+    piUpdateTotals();
+    piSyncBank();
+}
+
+function piUpdateRow(i, field, val) {
+    if (piInvoiceRows[i]) {
+        piInvoiceRows[i][field] = val;
+        piUpdateTotals();
+    }
+}
+
+function piRemoveRow(i) {
+    piInvoiceRows.splice(i, 1);
+    piRenderPreview();
+}
+
+function piAddRow() {
+    const today = new Date().toISOString().split('T')[0];
+    piInvoiceRows.push({ date: today, tutor: '', type: 'School (1-on-1)', amount: 0 });
+    piRenderPreview();
+    // scroll to bottom of table
+    const tbody = document.getElementById('pi-sessions-tbody');
+    tbody.lastElementChild?.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function piUpdateTotals() {
+    const subtotal = piInvoiceRows.reduce((sum, r) => sum + (parseFloat(r.amount)||0), 0);
+    const due = Math.max(0, subtotal - piPaidTotal);
+    document.getElementById('pi-subtotal-preview').textContent = 'KES ' + subtotal.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('pi-paid-preview').textContent    = 'KES ' + piPaidTotal.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('pi-due-preview').textContent     = 'KES ' + due.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function piSyncNote() {
+    const note = document.getElementById('pi-note').value.trim();
+    const noteEl = document.getElementById('pi-note-preview');
+    if (note) { noteEl.textContent = note; noteEl.style.display = 'block'; }
+    else       { noteEl.style.display = 'none'; }
+}
+
+function piSyncBank() {
+    const map = {
+        'pi-bank':    'pi-bank-name-p',
+        'pi-accname': 'pi-accname-p',
+        'pi-accnum':  'pi-accnum-p',
+        'pi-mpesa':   'pi-mpesa-p',
+    };
+    for (const [srcId, dstId] of Object.entries(map)) {
+        const src = document.getElementById(srcId);
+        const dst = document.getElementById(dstId);
+        if (src && dst) dst.textContent = src.value;
+    }
+    // due date
+    const dueEl = document.getElementById('pi-due');
+    const duePEl = document.getElementById('pi-due-date-p');
+    if (dueEl && duePEl) {
+        duePEl.textContent = dueEl.value ? new Date(dueEl.value + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) : 'â€”';
+    }
+}
+
+function piSyncFooter() {
+    const txt = document.getElementById('pi-footer-note').value.trim();
+    const el  = document.getElementById('pi-footer-note-preview');
+    if (txt) { el.textContent = txt; el.style.display = 'block'; }
+    else       { el.style.display = 'none'; }
+}
+
+function piOpenPreview() {
+    const studentId = document.getElementById('pi-student').value;
+    if (!studentId) { showAlert('error', 'Please select a student first.'); return; }
+    if (!piInvoiceRows.length) { showAlert('error', 'No sessions loaded. Please load sessions first.'); return; }
+
+    // Build print HTML
+    const subtotal = piInvoiceRows.reduce((sum, r) => sum + (parseFloat(r.amount)||0), 0);
+    const due      = Math.max(0, subtotal - piPaidTotal);
+    const invNo    = document.getElementById('pi-inv-number').textContent;
+    const invDate  = document.getElementById('pi-inv-date').textContent;
+    const note     = document.getElementById('pi-note').value.trim();
+    const footer   = document.getElementById('pi-footer-note').value.trim();
+    const bank     = document.getElementById('pi-bank').value;
+    const accName  = document.getElementById('pi-accname').value;
+    const accNum   = document.getElementById('pi-accnum').value;
+    const mpesa    = document.getElementById('pi-mpesa').value;
+    const dueDate  = document.getElementById('pi-due-date-p').textContent;
+    const from     = document.getElementById('pi-from').value;
+    const to       = document.getElementById('pi-to').value;
+
+    const rowsHtml = piInvoiceRows.map((r, i) => `
+        <tr>
+            <td>${i+1}</td>
+            <td>${r.date}</td>
+            <td>${r.tutor}</td>
+            <td>${r.type}</td>
+            <td style="text-align:right;"><strong>KES ${parseFloat(r.amount).toLocaleString('en-KE',{minimumFractionDigits:2})}</strong></td>
+        </tr>`).join('');
+
+    const html = `
+    <!DOCTYPE html><html><head>
+        <title>Fee Invoice â€“ ${piStudentInfo.parent_name} â€“ ${invNo}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+        <style>
+            * { box-sizing:border-box; margin:0; padding:0; }
+            body { font-family:'Outfit',sans-serif; padding:40px; color:#1e293b; background:#fff; font-size:13px; }
+            .hdr { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #E5A93B; padding-bottom:16px; margin-bottom:22px; }
+            .hdr img { height:65px; }
+            .hdr-school h1 { font-size:18px; font-weight:900; color:#4A0E17; }
+            .hdr-school p  { font-size:11px; color:#6C757D; margin-top:3px; }
+            .inv-badge { background:linear-gradient(135deg,#4A0E17,#30080E); color:#fff; padding:8px 18px; border-radius:8px; font-weight:800; font-size:14px; letter-spacing:1px; text-align:center; }
+            .inv-meta  { font-size:11px; color:#6C757D; margin-top:6px; text-align:right; }
+            .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+            .meta-box  { background:#FAF7F2; border-radius:8px; padding:14px 16px; }
+            .meta-box .label { font-size:10px; font-weight:800; text-transform:uppercase; color:#6C757D; letter-spacing:0.6px; margin-bottom:6px; }
+            .meta-box .name  { font-size:15px; font-weight:800; color:#1e293b; }
+            .meta-box .sub   { font-size:11px; color:#6C757D; margin-top:3px; }
+            .note-bar { background:rgba(229,169,59,0.12); border:1px solid rgba(229,169,59,0.4); border-radius:6px; padding:8px 14px; margin-bottom:16px; font-weight:700; color:#4A0E17; }
+            table { width:100%; border-collapse:collapse; margin-bottom:16px; }
+            thead th { background:#4A0E17; color:#fff; padding:9px 11px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+            tbody td { padding:9px 11px; border-bottom:1px solid #e2e8f0; }
+            tbody tr:nth-child(even) td { background:#FAF7F2; }
+            tfoot td { padding:9px 11px; font-weight:700; }
+            .totals-wrap { display:flex; justify-content:flex-end; margin-bottom:18px; }
+            .totals-box  { min-width:270px; }
+            .tot-row     { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid #e2e8f0; font-size:12px; }
+            .tot-row .lbl { color:#6C757D; }
+            .tot-due  { display:flex; justify-content:space-between; padding:11px 14px; background:linear-gradient(135deg,#4A0E17,#30080E); border-radius:7px; margin-top:6px; }
+            .tot-due .lbl { color:rgba(255,255,255,0.85); font-weight:700; }
+            .tot-due .val { color:#E5A93B; font-weight:900; font-size:15px; }
+            .bank-box { background:#FAF7F2; border-radius:10px; padding:14px 18px; margin-bottom:16px; border:1px solid rgba(74,14,23,0.1); }
+            .bank-box .blabel { font-size:10px; font-weight:800; text-transform:uppercase; color:#6C757D; letter-spacing:0.8px; margin-bottom:10px; }
+            .bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; }
+            .bank-grid .k { color:#6C757D; }
+            .footer-note { font-size:11px; color:#6C757D; font-style:italic; padding:10px 0; border-top:1px dashed #e2e8f0; margin-bottom:16px; }
+            .sig-row { display:flex; justify-content:space-between; padding-top:14px; border-top:1px solid #e2e8f0; font-size:11px; color:#6C757D; margin-top:10px; }
+            .sig-line { border-top:1px solid #4A0E17; width:150px; text-align:center; padding-top:4px; margin-top:28px; }
+            @media print { button { display:none!important; } body { padding:20px; } }
+        </style>
+    </head><body>
+        <div class="hdr">
+            <div style="display:flex;align-items:center;gap:14px;">
+                <img src="../logo.png" alt="S.H.T.A">
+                <div class="hdr-school">
+                    <h1>SANITY HOMEBASED TUITION ACADEMY</h1>
+                    <p>Email: accounts@sanityeducation.com &nbsp;|&nbsp; Tel: +254 716 942 939 / +254 731 091 000</p>
+                    <p>P.O. Box 12345, Nairobi, Kenya</p>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <div class="inv-badge">FEE INVOICE</div>
+                <div class="inv-meta">Invoice No: <strong>${invNo}</strong></div>
+                <div class="inv-meta">Date: <strong>${invDate}</strong></div>
+            </div>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-box" style="border-left:4px solid #4A0E17;">
+                <div class="label">Billed To</div>
+                <div class="name">${piStudentInfo.parent_name}</div>
+                <div class="sub">${piStudentInfo.parent_email}</div>
+            </div>
+            <div class="meta-box" style="border-left:4px solid #E5A93B;">
+                <div class="label">Student</div>
+                <div class="name">${piStudentInfo.student_name}</div>
+                <div class="sub">Grade: ${piStudentInfo.grade_level} &nbsp;|&nbsp; Period: ${from} â€“ ${to}</div>
+            </div>
+        </div>
+
+        ${note ? `<div class="note-bar">${note}</div>` : ''}
+
+        <table>
+            <thead><tr>
+                <th>#</th><th>Date</th><th>Tutor</th><th>Session Type</th><th style="text-align:right;">Amount (KES)</th>
+            </tr></thead>
+            <tbody>${rowsHtml}</tbody>
+            <tfoot><tr>
+                <td colspan="4" style="text-align:right;color:#6C757D;">Subtotal</td>
+                <td style="text-align:right;">KES ${subtotal.toLocaleString('en-KE',{minimumFractionDigits:2})}</td>
+            </tr></tfoot>
+        </table>
+
+        <div class="totals-wrap">
+            <div class="totals-box">
+                <div class="tot-row"><span class="lbl">Subtotal</span><span>KES ${subtotal.toLocaleString('en-KE',{minimumFractionDigits:2})}</span></div>
+                <div class="tot-row"><span class="lbl">Previously Paid</span><span style="color:#047857;">KES ${piPaidTotal.toLocaleString('en-KE',{minimumFractionDigits:2})}</span></div>
+                <div class="tot-due"><span class="lbl">AMOUNT DUE</span><span class="val">KES ${due.toLocaleString('en-KE',{minimumFractionDigits:2})}</span></div>
+            </div>
+        </div>
+
+        <div class="bank-box">
+            <div class="blabel"><span style="margin-right:6px;">ðŸ¦</span> Payment Instructions</div>
+            <div class="bank-grid">
+                <div><span class="k">Bank:</span> <strong>${bank}</strong></div>
+                <div><span class="k">Account Name:</span> <strong>${accName}</strong></div>
+                <div><span class="k">Account No:</span> <strong>${accNum}</strong></div>
+                <div><span class="k">M-Pesa:</span> <strong>${mpesa}</strong></div>
+                <div style="grid-column:span 2;"><span class="k">Due Date:</span> <strong style="color:#DC2626;">${dueDate}</strong></div>
+            </div>
+        </div>
+
+        ${footer ? `<div class="footer-note">${footer}</div>` : ''}
+
+        <div class="sig-row">
+            <div>Prepared by: <strong>Accounts Department</strong><div class="sig-line">Authorised Signature</div></div>
+            <div style="text-align:right;"><strong style="color:#4A0E17;font-size:13px;">Sanity Homebased Tuition Academy</strong><br><span>Thank you for choosing us!</span><div class="sig-line">Parent Acknowledgement</div></div>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+            <button onclick="window.print()" style="padding:11px 28px;background:#4A0E17;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:Outfit,sans-serif;font-weight:700;font-size:14px;">
+                ðŸ–¨ï¸ Print / Save as PDF
+            </button>
+        </div>
+    </body></html>`;
+
+    // Open print window
+    const win = window.open('', '_blank', 'width=1000,height=1100');
+    win.document.write(html);
+    win.document.close();
+
+    // Increment invoice counter for next invoice
+    piInvoiceCounter++;
+    document.getElementById('pi-inv-number').textContent = 'INV-' + String(piInvoiceCounter).padStart(3,'0');
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+﻿Created At: 2026-07-16T06:46:55Z
+Completed At: 2026-07-16T06:46:55Z
+The following changes were made by the multi_replace_file_content tool to: c:\Users\HP EliteBook 840 G8\Desktop\sanity home based\accounts_dashboard.php. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -164,6 +164,9 @@
+     <div class="nav-item" onclick="switchTab('pricing', this)"><i class="fa-solid fa-tags"></i> Student Pricing</div>
+     <div class="nav-item" onclick="switchTab('invoices', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Invoices & Payments</div>
+     <div class="nav-item" onclick="switchTab('payroll', this)"><i class="fa-solid fa-hand-holding-dollar"></i> Teacher Payroll</div>
++
++    <div class="nav-section-label">Operations</div>
++    <div class="nav-item" onclick="switchTab('expenses', this)"><i class="fa-solid fa-wallet"></i> Extra Expenses</div>
+ </aside>
+ 
+ <!-- MAIN -->
+@@ -583,8 +583,126 @@
+         </div>
+     </div>
+ 
++    <!-- EXTRA EXPENSES -->
++    <div id="section-expenses" class="section">
++        <div class="page-header">
++            <h1>Extra Expenses</h1>
++            <p>Track and manage all operational expenses â€” inventory, utilities, repairs, and petty cash.</p>
++        </div>
++
++        <!-- Category Summary Cards -->
++        <div class="metrics-grid" style="margin-bottom:28px;">
++            <div class="metric-card" style="border-left:4px solid #3B82F6;">
++                <div class="metric-info"><h4>Inventory</h4><p id="exp-total-inventory" style="font-size:1.3rem;">KES 0</p></div>
++                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(59,130,246,0.25));color:#3B82F6;"><i class="fa-solid fa-boxes-stacked"></i></div>
++            </div>
++            <div class="metric-card" style="border-left:4px solid #10B981;">
++                <div class="metric-info"><h4>Utilities</h4><p id="exp-total-utility" style="font-size:1.3rem;">KES 0</p></div>
++                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.25));color:#10B981;"><i class="fa-solid fa-bolt"></i></div>
++            </div>
++            <div class="metric-card" style="border-left:4px solid #F59E0B;">
++                <div class="metric-info"><h4>General Repairs</h4><p id="exp-total-general_repairs" style="font-size:1.3rem;">KES 0</p></div>
++                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(245,158,11,0.25));color:#F59E0B;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
++            </div>
++            <div class="metric-card" style="border-left:4px solid #8B5CF6;">
++                <div class="metric-info"><h4>Petty Cash</h4><p id="exp-total-petty_cash" style="font-size:1.3rem;">KES 0</p></div>
++                <div class="metric-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.12),rgba(139,92,246,0.25));color:#8B5CF6;"><i class="fa-solid fa-mug-hot"></i></div>
++            </div>
++        </div>
++
++        <!-- Sub-category Tabs -->
++        <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;">
++            <button id="exp-btn-inventory"       class="btn btn-primary" onclick="setExpenseTab('inventory')"><i class="fa-solid fa-boxes-stacked"></i> Inventory</button>
++            <button id="exp-btn-utility"         class="btn btn-outline" onclick="setExpenseTab('utility')"><i class="fa-solid fa-bolt"></i> Utilities</button>
++            <button id="exp-btn-general_repairs" class="btn btn-outline" onclick="setExpenseTab('general_repairs')"><i class="fa-solid fa-screwdriver-wrench"></i> General Repairs</button>
++            <button id="exp-btn-petty_cash"      class="btn btn-outline" onclick="setExpenseTab('petty_cash')"><i class="fa-solid fa-mug-hot"></i> Petty Cash</button>
++        </div>
++
++        <!-- Active Category Panel -->
++        <div class="panel">
++            <div class="panel-header">
++                <h2 id="exp-panel-title">Inventory Management</h2>
++                <div style="display:flex;gap:8px;align-items:center;">
++                    <select id="exp-filter-month" class="form-control" style="min-width:160px;padding:8px 12px;" onchange="loadExpenses()">
++                        <option value="">All Months</option>
++                    </select>
++                    <button class="btn btn-primary" onclick="openExpenseModal()">
++                        <i class="fa-solid fa-plus"></i> Add Expense
++                    </button>
++                </div>
++            </div>
++
++            <!-- Category Description -->
++            <div id="exp-category-hint" style="background:var(--cream);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:0.88rem;color:var(--gray-600);border-left:4px solid var(--accent);"></div>
++
++            <div class="table-wrap">
++                <table>
++                    <thead>
++                        <tr>
++                            <th>Date</th>
++                            <th>Item / Name</th>
++                            <th>Description</th>
++                            <th>Reference</th>
++                            <th>Recorded By</th>
++                            <th>Amount (KES)</th>
++                            <th>Actions</th>
++                        </tr>
++                    </thead>
++                    <tbody id="expenses-tbody">
++                        <tr><td colspan="7" class="empty-row">Loadingâ€¦</td></tr>
++                    </tbody>
++                </table>
++            </div>
++
++            <div id="expenses-total-row" style="display:none;background:var(--cream);border-radius:10px;padding:14px 20px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
++                <strong style="color:var(--primary);">Showing <span id="expenses-count">0</span> records</strong>
++                <strong style="color:var(--primary);font-size:1.1rem;">Total: KES <span id="expenses-subtotal">0.00</span></strong>
++            </div>
++        </div>
++    </div>
++
+ </main>
+ 
++<!-- MODAL: Add / Edit Expense -->
++<div class="modal-bg" id="expenseModal">
++    <div class="modal-box">
++        <div class="modal-header">
++            <h3 id="expense-modal-title">Add Expense</h3>
++            <p style="font-size:0.85rem;color:var(--gray-600);margin-top:4px;" id="expense-modal-subtitle">Fill in the details below.</p>
++        </div>
++        <form onsubmit="saveExpense(event)">
++            <input type="hidden" id="exp-id">
++            <input type="hidden" id="exp-category-hidden">
++            <div class="form-grid" style="margin-bottom:18px;">
++                <div class="form-group" style="grid-column:span 2;">
++                    <label><i class="fa-solid fa-tag"></i> Item / Name <span style="color:red">*</span></label>
++                    <input type="text" id="exp-item-name" class="form-control" placeholder="e.g. 10 Chairs, Electricity Bill, Paint Job, Tea & Snacks" required>
++                </div>
++                <div class="form-group">
++                    <label><i class="fa-solid fa-calendar"></i> Expense Date <span style="color:red">*</span></label>
++                    <input type="date" id="exp-date" class="form-control" required>
++                </div>
++                <div class="form-group">
++                    <label><i class="fa-solid fa-money-bill"></i> Amount (KES) <span style="color:red">*</span></label>
++                    <input type="number" id="exp-amount" class="form-control" placeholder="e.g. 5000" min="0" step="0.01" required>
++                </div>
++                <div class="form-group" style="grid-column:span 2;">
++                    <label><i class="fa-solid fa-align-left"></i> Description</label>
++                    <textarea id="exp-description" class="form-control" rows="2" placeholder="Optional details about this expenseâ€¦" style="resize:vertical;"></textarea>
++                </div>
++                <div class="form-group" style="grid-column:span 2;">
++                    <label><i class="fa-solid fa-receipt"></i> Reference / Receipt No.</label>
++                    <input type="text" id="exp-reference" class="form-control" placeholder="e.g. REC-2026-001, Invoice #123">
++                </div>
++            </div>
++            <div style="display:flex;gap:12px;justify-content:flex-end;">
++                <button type="button" class="btn btn-outline" onclick="closeModal('expenseModal')">Cancel</button>
++                <button type="submit" class="btn btn-primary" id="exp-submit-btn"><i class="fa-solid fa-floppy-disk"></i> Save Expense</button>
++            </div>
++        </form>
++    </div>
++</div>
++
+ <!-- MODAL: Edit Pricing -->
+ <div class="modal-bg" id="pricingModal">
+     <div class="modal-box">
+@@ -692,6 +692,7 @@
+     if (id === 'pricing') loadPricing();
+     if (id === 'invoices') loadInvoiceDropdowns();
+     if (id === 'payroll') loadPayrollTab();
++    if (id === 'expenses') initExpensesTab();
+ }
+ 
+ // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@@ -1424,6 +1424,224 @@
+     window.location.reload(); // Reload to restore event handlers
+ }
+ 
++// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
++// EXTRA EXPENSES MODULE
++// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
++let currentExpenseCategory = 'inventory';
++const expCategoryMeta = {
++    inventory: {
++        label: 'Inventory Management',
++        hint: 'ðŸ“¦ Track furniture and equipment purchases â€” desks, chairs, computers, and other physical assets.',
++        color: '#3B82F6',
++        icon: 'fa-boxes-stacked'
++    },
++    utility: {
++        label: 'Utility Management',
++        hint: 'âš¡ Track recurring utility expenses â€” electricity, water, books, computer repairs, and internet.',
++        color: '#10B981',
++        icon: 'fa-bolt'
++    },
++    general_repairs: {
++        label: 'General Repairs',
++        hint: 'ðŸ”§ Track maintenance and repair work â€” painting, plumbing, structural fixes, and building upkeep.',
++        color: '#F59E0B',
++        icon: 'fa-screwdriver-wrench'
++    },
++    petty_cash: {
++        label: 'Petty Cash',
++        hint: 'â˜• Track small daily expenses â€” tea, lunch, snacks, printing, and minor miscellaneous costs.',
++        color: '#8B5CF6',
++        icon: 'fa-mug-hot'
++    }
++};
++
++function initExpensesTab() {
++    // Populate month filter from allMonthly (already loaded)
++    const monthSel = document.getElementById('exp-filter-month');
++    if (monthSel) {
++        monthSel.innerHTML = '<option value="">All Months</option>';
++        allMonthly.forEach(m => {
++            monthSel.innerHTML += `<option value="${m.month}">${m.month}</option>`;
++        });
++        // Also add months from current date if no sessions
++        if (!allMonthly.length) {
++            const now = new Date();
++            for (let i = 0; i < 12; i++) {
++                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
++                const label = d.toLocaleString('default', { month: 'long' }) + ' ' + d.getFullYear();
++                monthSel.innerHTML += `<option value="${label}">${label}</option>`;
++            }
++        }
++    }
++    setExpenseTab('inventory');
++}
++
++function setExpenseTab(cat) {
++    currentExpenseCategory = cat;
++    // Update button styles
++    ['inventory','utility','general_repairs','petty_cash'].forEach(c => {
++        const btn = document.getElementById('exp-btn-' + c);
++        if (btn) btn.className = c === cat ? 'btn btn-primary' : 'btn btn-outline';
++    });
++    // Update panel title & hint
++    const meta = expCategoryMeta[cat];
++    const title = document.getElementById('exp-panel-title');
++    const hint  = document.getElementById('exp-category-hint');
++    if (title) title.textContent = meta.label;
++    if (hint)  hint.innerHTML = meta.hint;
++    loadExpenses();
++}
++
++function loadExpenses() {
++    const cat   = currentExpenseCategory;
++    const month = document.getElementById('exp-filter-month')?.value || '';
++    const tbody = document.getElementById('expenses-tbody');
++    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Loadingâ€¦</td></tr>';
++
++    fetch(`api_accounts.php?action=get_expenses&category=${cat}&month=${encodeURIComponent(month)}`)
++        .then(r => r.json())
++        .then(d => {
++            if (d.status !== 'success') { showAlert('error', d.message); return; }
++
++            // Update summary cards
++            ['inventory','utility','general_repairs','petty_cash'].forEach(c => {
++                const el = document.getElementById('exp-total-' + c);
++                if (el) el.textContent = 'KES ' + (d.totals[c] || 0).toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
++            });
++
++            const expenses = d.expenses || [];
++            const totalRow  = document.getElementById('expenses-total-row');
++            const countEl   = document.getElementById('expenses-count');
++            const subtotalEl = document.getElementById('expenses-subtotal');
++
++            if (!tbody) return;
++
++            if (!expenses.length) {
++                tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No ${expCategoryMeta[cat].label} expenses recorded yet. Click "Add Expense" to start.</td></tr>`;
++                if (totalRow) totalRow.style.display = 'none';
++                return;
++            }
++
++            let subtotal = 0;
++            tbody.innerHTML = expenses.map(e => {
++                const amt = parseFloat(e.amount);
++                subtotal += amt;
++                return `<tr>
++                    <td><strong>${e.expense_date}</strong></td>
++                    <td><strong>${escHtml(e.item_name)}</strong></td>
++                    <td style="max-width:200px;font-size:0.87rem;color:var(--gray-600);">${e.description ? escHtml(e.description) : '<em style="color:var(--gray-500);">â€”</em>'}</td>
++                    <td style="font-size:0.85rem;">${e.reference ? escHtml(e.reference) : '<em style="color:var(--gray-500);">â€”</em>'}</td>
++                    <td style="font-size:0.84rem;color:var(--gray-600);">${escHtml(e.recorded_by_name)}</td>
++                    <td><strong style="color:var(--primary);">KES ${amt.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong></td>
++                    <td>
++                        <div class="btn-group">
++                            <button class="btn btn-outline btn-sm" onclick="editExpense(${e.id})">
++                                <i class="fa-solid fa-pen"></i> Edit
++                            </button>
++                            <button class="btn btn-sm" style="background:#FEE2E2;color:#DC2626;border:none;font-weight:700;" onclick="deleteExpense(${e.id}, '${escHtml(e.item_name).replace(/'/g,"&#39;")}')">
++                                <i class="fa-solid fa-trash"></i>
++                            </button>
++                        </div>
++                    </td>
++                </tr>`;
++            }).join('');
++
++            if (countEl)    countEl.textContent = expenses.length;
++            if (subtotalEl) subtotalEl.textContent = subtotal.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
++            if (totalRow)   totalRow.style.display = 'flex';
++        })
++        .catch(() => showAlert('error', 'Network error loading expenses.'));
++}
++
++function openExpenseModal(id) {
++    document.getElementById('exp-id').value = id || '';
++    document.getElementById('exp-category-hidden').value = currentExpenseCategory;
++    document.getElementById('exp-item-name').value   = '';
++    document.getElementById('exp-date').value         = new Date().toISOString().split('T')[0];
++    document.getElementById('exp-amount').value       = '';
++    document.getElementById('exp-description').value  = '';
++    document.getElementById('exp-reference').value    = '';
++
++    const meta = expCategoryMeta[currentExpenseCategory];
++    document.getElementById('expense-modal-title').textContent    = id ? 'Edit Expense' : 'Add Expense';
++    document.getElementById('expense-modal-subtitle').textContent = `Category: ${meta.label}`;
++    document.getElementById('exp-submit-btn').innerHTML           = id ? '<i class="fa-solid fa-floppy-disk"></i> Update Expense' : '<i class="fa-solid fa-floppy-disk"></i> Save Expense';
++    document.getElementById('expenseModal').classList.add('open');
++}
++
++function editExpense(id) {
++    fetch(`api_accounts.php?action=get_expense_single&id=${id}`)
++        .then(r => r.json())
++        .then(d => {
++            if (d.status !== 'success') { showAlert('error', d.message); return; }
++            const e = d.expense;
++            document.getElementById('exp-id').value              = e.id;
++            document.getElementById('exp-category-hidden').value = e.category;
++            document.getElementById('exp-item-name').value       = e.item_name;
++            document.getElementById('exp-date').value            = e.expense_date;
++            document.getElementById('exp-amount').value          = e.amount;
++            document.getElementById('exp-description').value     = e.description || '';
++            document.getElementById('exp-reference').value       = e.reference || '';
++
++            const meta = expCategoryMeta[e.category] || {label: e.category};
++            document.getElementById('expense-modal-title').textContent    = 'Edit Expense';
++            document.getElementById('expense-modal-subtitle').textContent = `Category: ${meta.label}`;
++            document.getElementById('exp-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Expense';
++            document.getElementById('expenseModal').classList.add('open');
++        });
++}
++
++function saveExpense(e) {
++    e.preventDefault();
++    const id = document.getElementById('exp-id').value;
++    const fd = new FormData();
++    fd.append('action',       id ? 'update_expense' : 'add_expense');
++    if (id) fd.append('id',   id);
++    fd.append('category',     document.getElementById('exp-category-hidden').value);
++    fd.append('item_name',    document.getElementById('exp-item-name').value);
++    fd.append('expense_date', document.getElementById('exp-date').value);
++    fd.append('amount',       document.getElementById('exp-amount').value);
++    fd.append('description',  document.getElementById('exp-description').value);
++    fd.append('reference',    document.getElementById('exp-reference').value);
++
++    const btn = document.getElementById('exp-submit-btn');
++    btn.disabled = true;
++    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Savingâ€¦';
++
++    fetch('api_accounts.php', { method: 'POST', body: fd })
++        .then(r => r.json())
++        .then(d => {
++            btn.disabled = false;
++            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Expense';
++            closeModal('expenseModal');
++            showAlert(d.status, d.message);
++            if (d.status === 'success') loadExpenses();
++        })
++        .catch(() => {
++            btn.disabled = false;
++            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Expense';
++            showAlert('error', 'Network error. Please try again.');
++        });
++}
++
++function deleteExpense(id, name) {
++    if (!confirm(`Delete expense "${name}"? This cannot be undone.`)) return;
++    const fd = new FormData();
++    fd.append('action', 'delete_expense');
++    fd.append('id', id);
++    fetch('api_accounts.php', { method: 'POST', body: fd })
++        .then(r => r.json())
++        .then(d => {
++            showAlert(d.status, d.message);
++            if (d.status === 'success') loadExpenses();
++        });
++}
++
++function escHtml(str) {
++    if (!str) return '';
++    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
++}
++
+ // Init
+ window.onload = () => {
+     loadSessions();
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

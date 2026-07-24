@@ -1,0 +1,8 @@
+﻿    if (id === 'dashboard' || id === 'sessions' || id === 'monthly') loadSessions();
+    if (id === 'pricing') loadPricing();
+    if (id === 'invoices') loadInvoiceDropdowns();
+    if (id === 'parent-invoice') initParentInvoice();
+    if (id === 'payroll') loadPayrollTab();
+    if (id === 'expenses') initExpensesTab();
+    if (id === 'expreport') initReportTab();
+    if (id === 'finreport') initFinReportTab();

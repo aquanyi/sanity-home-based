@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.H.T.A — Portal Login</title>
+    <meta name="description" content="Sanity Homebased Tuition Academy secure staff and parent portal login.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary:       #4A0E17;
+            --primary-mid:   #6B1423;
+            --primary-dark:  #2A080D;
+            --accent:        #E5A93B;
+            --accent-light:  #F0C46A;
+            --cream:         #FAF7F2;
+            --white:         #FFFFFF;
+            --dark:          #121214;
+            --gray-300:      #E5E7EB;
+            --gray-400:      #9CA3AF;
+            --gray-500:      #6B7280;
+            --gray-600:      #4B5563;
+            --border:        rgba(255,255,255,0.12);
+            --error:         #EF4444;
+            --success:       #10B981;
+        }
+
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background: #0C0408;
+            color: var(--white);
+            position: relative;
+        }
+
+        /* ═══════════════════════════════════════
+           ANIMATED BACKGROUND
+        ═══════════════════════════════════════ */
+        .bg-canvas {
+            position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse at 15% 50%, #3D0A13 0%, transparent 55%),
+                        radial-gradient(ellipse at 85% 20%, #1A0508 0%, transparent 50%),
+                        radial-gradient(ellipse at 60% 80%, #2A0810 0%, transparent 45%),
+                        #080205;
+        }
+
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(70px);
+            animation: orbFloat linear infinite; pointer-events: none; z-index: 0;
+        }
+        .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(74,14,23,0.6), transparent 70%); top: -10%; left: -10%; animation-duration: 20s; }
+        .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(229,169,59,0.15), transparent 70%); top: 60%; right: -5%; animation-duration: 28s; animation-direction: reverse; }
+        .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(107,20,35,0.4), transparent 70%); bottom: 10%; left: 30%; animation-duration: 18s; }
+
+        @keyframes orbFloat {
+            0%   { transform: translate(0,0) scale(1); }
+            33%  { transform: translate(30px,-20px) scale(1.05); }
+            66%  { transform: translate(-20px,30px) scale(0.95); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+
+        /* Floating particles */
+        .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .particle {
+            position: absolute; width: 3px; height: 3px; background: var(--accent);
+            border-radius: 50%; opacity: 0;
+            animation: particleRise linear infinite;
+        }
+        @keyframes particleRise {
+            0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+            10%  { opacity: 0.6; }
+            90%  { opacity: 0.3; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        /* Grid pattern overlay */
+        .grid-overlay {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(229,169,59,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(229,169,59,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ═══════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════ */
+        .page-layout {
+            position: relative; z-index: 10;
+            min-height: 100vh; display: flex;
+        }
+
+        /* LEFT — Branding */
+        .brand-panel {
+            flex: 1.1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 60px 50px; text-align: center;
+            position: relative;
+        }
+
+        .brand-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(229,169,59,0.12); border: 1px solid rgba(229,169,59,0.25);
+            border-radius: 30px; padding: 6px 18px; margin-bottom: 32px;
+            font-size: 0.78rem; font-weight: 600; color: var(--accent);
+            letter-spacing: 1.5px; text-transform: uppercase;
+        }
+
+        /* Raised Logo Card */
+        .brand-logo-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 
+                        0 5px 15px rgba(229, 169, 59, 0.1);
+            border: 1.5px solid rgba(229, 169, 59, 0.35);
+            margin-bottom: 32px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+            position: relative;
+        }
+        .brand-logo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
+                        0 8px 25px rgba(229, 169, 59, 0.2);
+        }
+        .brand-logo-card img {
+            width: 130px; height: 130px; object-fit: contain; display: block;
+        }
+
+        .brand-title {
+            font-size: clamp(2rem, 3.5vw, 2.7rem); font-weight: 900;
+            line-height: 1.2; margin-bottom: 18px;
+            background: linear-gradient(135deg, #FFFFFF 0%, var(--accent-light) 50%, #FFFFFF 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; background-size: 200% auto;
+            animation: shimmerText 5s linear infinite;
+        }
+        @keyframes shimmerText {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .brand-subtitle {
+            font-size: 1rem; color: rgba(255,255,255,0.5);
+            line-height: 1.7; max-width: 380px; margin: 0 auto 40px;
+        }
+
+        .brand-stats {
+            display: flex; gap: 32px; justify-content: center;
+            margin-top: 20px;
+        }
+        .stat-item { text-align: center; }
+        .stat-num {
+            font-size: 1.8rem; font-weight: 800; color: var(--accent);
+            display: block; line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.72rem; color: rgba(255,255,255,0.4);
+            text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; display: block;
+        }
+
+        .brand-divider {
+            width: 1px; height: 100%; max-height: 60px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15), transparent);
+        }
+
+        /* RIGHT — Form Panel */
+        .form-panel {
+            flex: 0 0 540px; max-width: 540px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            border-left: 1px solid rgba(255,255,255,0.08);
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        .form-panel::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.6;
+        }
+
+        /* Back to Portal Button - Absolute positioned at the top-right corner for ALL screen sizes */
+        .back-link {
+            position: absolute; top: 24px; right: 24px; z-index: 50;
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6); text-decoration: none;
+            padding: 8px 18px; border-radius: 30px; font-size: 0.82rem; font-weight: 600;
+            transition: all 0.3s ease; backdrop-filter: blur(10px);
+        }
+        .back-link:hover {
+            background: rgba(229,169,59,0.15); border-color: rgba(229,169,59,0.4);
+            color: var(--accent); transform: translateX(-3px);
+        }
+
+        .form-scroll { flex: 1; overflow-y: auto; padding: 90px 48px 48px; display: flex; flex-direction: column; justify-content: center; }
+        .form-scroll::-webkit-scrollbar { width: 4px; }
+        .form-scroll::-webkit-scrollbar-thumb { background: rgba(229,169,59,0.3); border-radius: 2px; }
+
+        /* TAB SWITCHER */
+        .tab-nav {
+            display: flex; gap: 4px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+            padding: 4px; margin-bottom: 36px; flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1; min-width: 60px; padding: 10px 6px; border: none; background: transparent;
+            color: rgba(255,255,255,0.45); font-family: 'Outfit', sans-serif;
+            font-size: 0.72rem; font-weight: 600; cursor: pointer; border-radius: 10px;
+            transition: all 0.25s ease; letter-spacing: 0.3px; text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.05); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary-mid), var(--primary-dark));
+            color: var(--white); box-shadow: 0 4px 15px rgba(74,14,23,0.5);
+        }
+
+        /* CARD FOR CREDENTIALS (WHITE VISIBILITY) */
+        .credentials-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25),
+                        0 5px 15px rgba(74, 14, 23, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        /* FORM WRAPPERS */
+        .form-wrapper { display: none; }
+        .form-wrapper.active {
+            display: block;
+            animation: formSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes formSlideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* FORM HEADER */
+        .form-header { margin-bottom: 28px; text-align: center; }
+        .role-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(229,169,59,0.12); border: 1px solid rgba(229,169,59,0.25);
+            color: var(--accent); padding: 4px 12px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 12px;
+        }
+        .form-header h2 {
+            font-size: 1.8rem; font-weight: 800; color: var(--white);
+            margin-bottom: 6px; line-height: 1.2;
+        }
+        .form-header p { color: rgba(255,255,255,0.45); font-size: 0.9rem; line-height: 1.5; }
+
+        /* ERROR ALERT */
+        .login-error {
+            display: none;
+            background: #FEF2F2; border: 1px solid #FCA5A5;
+            color: #B91C1C; padding: 12px 16px; border-radius: 12px;
+            font-size: 0.87rem; font-weight: 600; margin-bottom: 20px;
+            animation: shakeX 0.4s ease;
+        }
+        @keyframes shakeX {
+            0%,100% { transform: translateX(0); }
+            20%,60% { transform: translateX(-6px); }
+            40%,80% { transform: translateX(6px); }
+        }
+
+        /* INPUTS */
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block; margin-bottom: 8px; font-size: 0.78rem; font-weight: 800;
+            color: var(--primary); text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        .input-wrap { position: relative; }
+        .input-icon {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: var(--gray-500); font-size: 0.95rem;
+            transition: color 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+        .input-wrap input {
+            width: 100%; padding: 14px 46px 14px 46px;
+            background: #F9FAFB; border: 1.5px solid rgba(0,0,0,0.08);
+            border-radius: 12px; color: var(--dark); font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem; font-weight: 500; outline: none;
+            transition: all 0.3s ease;
+        }
+        .input-wrap input::placeholder { color: var(--gray-400); }
+        .input-wrap input:focus {
+            border-color: var(--primary-mid); background: var(--white);
+            box-shadow: 0 0 0 4px rgba(74,14,23,0.08);
+        }
+        .input-wrap input:focus + .input-icon,
+        .input-wrap:focus-within .input-icon {
+            color: var(--primary-mid); transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Password toggle */
+        .pw-toggle {
+            position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--gray-500); cursor: pointer;
+            font-size: 0.9rem; transition: color 0.3s; padding: 4px;
+        }
+        .pw-toggle:hover { color: var(--primary-mid); }
+
+        /* Floating label lift effect */
+        .input-wrap input:not(:placeholder-shown) + .input-icon { color: var(--primary-mid); }
+
+        /* FORM OPTIONS */
+        .form-opts {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px;
+        }
+        .remember-label {
+            display: flex; align-items: center; gap: 10px;
+            cursor: pointer; color: var(--gray-600); font-size: 0.87rem; font-weight: 600;
+        }
+        .remember-label input[type="checkbox"] {
+            width: 18px; height: 18px; accent-color: var(--primary-mid); cursor: pointer;
+        }
+        .forgot-link {
+            color: var(--primary-mid); text-decoration: none;
+            font-size: 0.87rem; font-weight: 700; transition: color 0.3s;
+        }
+        .forgot-link:hover { color: var(--accent); text-decoration: underline; }
+
+        /* SUBMIT BUTTON */
+        .btn-login {
+            width: 100%; padding: 15px 24px;
+            background: linear-gradient(135deg, var(--primary-mid) 0%, var(--primary-dark) 100%);
+            border: none; border-radius: 12px;
+            color: var(--white); font-family: 'Outfit', sans-serif;
+            font-size: 1rem; font-weight: 700; letter-spacing: 0.5px;
+            cursor: pointer; position: relative; overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 25px rgba(74,14,23,0.25);
+        }
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(74,14,23,0.35);
+        }
+        .btn-login:active { transform: translateY(-1px); }
+        .btn-login .btn-text { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-login .btn-spinner { display: none; }
+        .btn-login.loading .btn-text { display: none; }
+        .btn-login.loading .btn-spinner { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        /* FORM FOOTER */
+        .form-footer {
+            margin-top: 24px; text-align: center;
+            font-size: 0.85rem; color: rgba(255,255,255,0.4);
+            font-weight: 500;
+        }
+        .form-footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
+        .form-footer a:hover { color: var(--accent-light); }
+
+        /* DIVIDER */
+        .form-divider {
+            display: flex; align-items: center; gap: 12px; margin: 24px 0;
+        }
+        .form-divider::before, .form-divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(255,255,255,0.12);
+        }
+        .form-divider span { color: rgba(255,255,255,0.35); font-size: 0.75rem; white-space: nowrap; font-weight: 600; }
+
+        /* SECURITY BADGE */
+        .security-note {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 28px; padding: 10px 16px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px; color: rgba(255,255,255,0.35); font-size: 0.77rem;
+            font-weight: 600;
+        }
+        .security-note i { color: #2ecc71; font-size: 0.85rem; }
+
+        /* ═══════════════════════════════════════
+           RESPONSIVE & MOBILE OPTIMIZATIONS
+        ═══════════════════════════════════════ */
+        @media (max-width: 1024px) {
+            .form-panel { flex: 0 0 460px; max-width: 460px; }
+            .form-scroll { padding: 80px 36px 36px; }
+        }
+
+        @media (max-width: 800px) {
+            .page-layout {
+                flex-direction: column;
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+            .brand-panel { 
+                flex: 0 0 auto; 
+                flex-direction: row; 
+                align-items: center; 
+                justify-content: center; 
+                gap: 16px; 
+                padding: 16px 20px; 
+                min-height: auto; 
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box;
+                overflow: hidden !important;
+            }
+            .brand-badge { display: none; }
+            .brand-logo-card { 
+                margin-bottom: 0; 
+                padding: 8px; 
+                border-radius: 12px; 
+                box-sizing: border-box;
+            }
+            .brand-logo-card img { 
+                width: 48px; 
+                height: 48px; 
+            }
+            .brand-title { 
+                font-size: 1.35rem; 
+                margin-bottom: 0; 
+                text-align: left; 
+                line-height: 1.25; 
+            }
+            .brand-subtitle { display: none; }
+            .brand-stats { display: none; }
+            
+            .form-panel { flex: 1; max-width: none; border-left: none; }
+            .form-scroll { padding: 40px 24px 30px; justify-content: flex-start; }
+            
+            /* Circular arrow-only back link at the top-right corner */
+            .back-link { 
+                position: absolute; 
+                top: 16px; 
+                right: 16px; 
+                width: 36px; 
+                height: 36px; 
+                padding: 0; 
+                border-radius: 50%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+            }
+            .back-link span { display: none; }
+            .back-link i { font-size: 0.95rem; margin-right: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .brand-panel { padding: 12px 16px; gap: 12px; }
+            .brand-logo-card { padding: 6px; border-radius: 10px; }
+            .brand-logo-card img { width: 40px; height: 40px; }
+            .brand-title { font-size: 1.15rem; }
+            
+            .form-scroll { padding: 30px 16px 24px; }
+            .back-link { top: 12px; right: 12px; width: 34px; height: 34px; }
+            
+            .credentials-card { padding: 20px 16px; border-radius: 20px; margin-bottom: 12px; }
+            .form-header h2 { font-size: 1.4rem; }
+            .form-header p { font-size: 0.82rem; }
+            .input-wrap input { padding: 12px 40px; font-size: 0.9rem; }
+            .input-icon { left: 14px; font-size: 0.85rem; }
+            .pw-toggle { right: 14px; font-size: 0.8rem; }
+            .btn-login { padding: 12px 20px; font-size: 0.95rem; }
+        }
+
+        /* Teacher Registration Modal Styles */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-bg.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-box {
+            background: var(--white);
+            border-radius: 18px;
+            padding: 30px;
+            width: 92%;
+            max-width: 580px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            position: relative;
+            animation: modalFadeUp 0.3s ease;
+        }
+        @keyframes modalFadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--cream);
+        }
+        .modal-header h3 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 800;
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: var(--primary);
+        }
+        .subj-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .subj-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            cursor: pointer;
+        }
+        .subj-item input {
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-canvas"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="grid-overlay"></div>
+<div class="particles" id="particles"></div>
+
+<div class="page-layout">
+    <!-- ══ LEFT: BRANDING ══ -->
+    <div class="brand-panel">
+        <div class="brand-badge">
+            <i class="fa-solid fa-graduation-cap"></i>
+            Academic Management Portal
+        </div>
+
+        <!-- Raised Card for Logo -->
+        <div class="brand-logo-card">
+            <img src="logo.png" alt="S.H.T.A Logo">
+        </div>
+
+        <h1 class="brand-title">Sanity Homebased<br>Tuition Academy</h1>
+        <p class="brand-subtitle">Empowering learners and educators through an integrated digital ecosystem built for excellence.</p>
+
+        <div class="brand-stats">
+            <div class="stat-item">
+                <span class="stat-num" id="stat-sessions">—</span>
+                <span class="stat-label">Sessions</span>
+            </div>
+            <div class="brand-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-users">—</span>
+                <span class="stat-label">Active Users</span>
+            </div>
+            <div class="brand-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num" id="stat-enrolments">—</span>
+                <span class="stat-label">Enrolments</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ RIGHT: FORMS ══ -->
+    <div class="form-panel">
+        <a href="portal.html" class="back-link" id="backButton">
+            <i class="fa-solid fa-arrow-left"></i> <span id="backButtonText">Back to Portal</span>
+        </a>
+
+        <div class="form-scroll">
+
+
+            <!-- ── ADMIN ── -->
+            <div class="form-wrapper" id="form-admin">
+                <div class="form-header">
+                    <div class="role-badge"><i class="fa-solid fa-shield-halved"></i> Administrator</div>
+                    <h2>Admin Login</h2>
+                    <p>Access system configuration and global oversight of the academy.</p>
+                </div>
+                <!-- White high visibility card for credentials -->
+                <div class="credentials-card">
+                    <form action="process_login.php" method="POST" class="login-form">
+                        <input type="hidden" name="role" value="admin">
+                        <div id="admin-error" class="login-error"></div>
+                        <div class="input-group">
+                            <label>Email or Username</label>
+                            <div class="input-wrap">
+                                <input type="text" name="identifier" required placeholder="admin@sanitytuition.com" autocomplete="username">
+                                <i class="fa-solid fa-envelope input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <input type="password" name="password" id="pw-admin" required placeholder="••••••••" autocomplete="current-password">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <button type="button" class="pw-toggle" onclick="togglePw('pw-admin',this)" tabindex="-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember-label"><input type="checkbox" name="remember"> Remember me</label>
+                            <a href="forgot_password.php?tab=admin" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span class="btn-text"><i class="fa-solid fa-right-to-bracket"></i> Login to Dashboard</span>
+                            <span class="btn-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="form-footer">
+                    Requires authorized administrative clearance. <a href="#">Request Support</a>
+                </div>
+            </div>
+
+            <!-- ── PARENT ── -->
+            <div class="form-wrapper" id="form-parent">
+                <div class="form-header">
+                    <div class="role-badge"><i class="fa-solid fa-users"></i> Parent / Guardian</div>
+                    <h2>Parent Login</h2>
+                    <p>Track your child's progress, reports, attendance and billing.</p>
+                </div>
+                <!-- White high visibility card for credentials -->
+                <div class="credentials-card">
+                    <form action="process_login.php" method="POST" class="login-form">
+                        <input type="hidden" name="role" value="parent">
+                        <div id="parent-error" class="login-error"></div>
+                        <div class="input-group">
+                            <label>Email Address</label>
+                            <div class="input-wrap">
+                                <input type="text" name="identifier" required placeholder="parent@example.com" autocomplete="email">
+                                <i class="fa-solid fa-envelope input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <input type="password" name="password" id="pw-parent" required placeholder="••••••••" autocomplete="current-password">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <button type="button" class="pw-toggle" onclick="togglePw('pw-parent',this)" tabindex="-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember-label"><input type="checkbox" name="remember"> Remember me</label>
+                            <a href="forgot_password.php?tab=parent" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span class="btn-text"><i class="fa-solid fa-house-chimney-user"></i> Access Parent Portal</span>
+                            <span class="btn-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="form-divider"><span>New here?</span></div>
+                <div class="form-footer">New parent? <a href="./">Enroll your child</a></div>
+            </div>
+
+            <!-- ── STUDENT ── -->
+            <div class="form-wrapper" id="form-student">
+                <div class="form-header">
+                    <div class="role-badge"><i class="fa-solid fa-user-graduate"></i> Student</div>
+                    <h2>Student Login</h2>
+                    <p>Access your portal, subjects, timetable, and results.</p>
+                </div>
+                <div class="credentials-card">
+                    <form action="process_login.php" method="POST" class="login-form">
+                        <input type="hidden" name="role" value="student">
+                        <div id="student-error" class="login-error"></div>
+                        <div class="input-group">
+                            <label>Admission Number or Email</label>
+                            <div class="input-wrap">
+                                <input type="text" name="identifier" required placeholder="A123S or student@shta" autocomplete="username">
+                                <i class="fa-solid fa-id-card input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <input type="password" name="password" id="pw-student" required placeholder="••••••••" autocomplete="current-password">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <button type="button" class="pw-toggle" onclick="togglePw('pw-student',this)" tabindex="-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember-label"><input type="checkbox" name="remember"> Remember me</label>
+                            <a href="forgot_password.php?tab=student" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span class="btn-text"><i class="fa-solid fa-arrow-right-to-bracket"></i> Access Student Portal</span>
+                            <span class="btn-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="form-footer">Need help? <a href="#">Contact Support</a></div>
+            </div>
+
+            <!-- ── TEACHER ── -->
+            <div class="form-wrapper" id="form-teachers">
+                <div class="form-header">
+                    <div class="role-badge"><i class="fa-solid fa-chalkboard-teacher"></i> Teaching Staff</div>
+                    <h2>Teacher Login</h2>
+                    <p>Manage classes, submit grades, and access lesson resources.</p>
+                </div>
+                <!-- White high visibility card for credentials -->
+                <div class="credentials-card">
+                    <form action="process_login.php" method="POST" class="login-form">
+                        <input type="hidden" name="role" value="teacher">
+                        <div id="teachers-error" class="login-error"></div>
+                        <div class="input-group">
+                            <label>Email or Staff ID</label>
+                            <div class="input-wrap">
+                                <input type="text" name="identifier" required placeholder="teacher@sanitytuition.com" autocomplete="email">
+                                <i class="fa-solid fa-id-badge input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <input type="password" name="password" id="pw-teacher" required placeholder="••••••••" autocomplete="current-password">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <button type="button" class="pw-toggle" onclick="togglePw('pw-teacher',this)" tabindex="-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember-label"><input type="checkbox" name="remember"> Remember me</label>
+                            <a href="forgot_password.php?tab=teachers" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span class="btn-text"><i class="fa-solid fa-book-open"></i> Login to Classroom</span>
+                            <span class="btn-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+                        </button>
+                        <div style="text-align: center; margin-top: 15px; font-size: 0.88rem; color: var(--gray-600);">
+                            Don't have an account? 
+                            <a href="javascript:void(0)" onclick="openRegisterModal()" style="color: var(--accent); font-weight: 700; text-decoration: underline;">
+                                Register Here
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="form-footer">Issues? <a href="#">Contact IT Support</a></div>
+            </div>
+
+            <!-- ── ACADEMIC OPERATIONS COORDINATOR / SCHEDULER ── -->
+            <div class="form-wrapper" id="form-timetable">
+                <div class="form-header">
+                    <div class="role-badge"><i class="fa-solid fa-calendar-days"></i> Scheduling Staff</div>
+                    <h2>Academic Operations Coordinator Login</h2>
+                    <p>Schedule lessons, allocate teachers, and resolve scheduling conflicts.</p>
+                </div>
+                <!-- White high visibility card for credentials -->
+                <div class="credentials-card">
+                    <form action="process_login.php" method="POST" class="login-form">
+                        <input type="hidden" name="role" value="timetabler">
+                        <div id="timetable-error" class="login-error"></div>
+                        <div class="input-group">
+                            <label>Email or Staff ID</label>
+                            <div class="input-wrap">
+                                <input type="text" name="identifier" required placeholder="scheduler@sanitytuition.com" autocomplete="email">
+                                <i class="fa-solid fa-calendar-check input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <input type="password" name="password" id="pw-timetable" required placeholder="••••••••" autocomplete="current-password">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <button type="button" class="pw-toggle" onclick="togglePw('pw-timetable',this)" tabindex="-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember-label"><input type="checkbox" name="remember"> Remember me</label>
+                            <a href="forgot_password.php?tab=timetable" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span class="btn-text"><i class="fa-solid fa-table-cells"></i> Open Scheduler</span>
+                            <span class="btn-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── ACCOUNTS ── -->
+            <div class="form-wrapper" id="form-accounts">
+                <div class="form-header">
+                    <div class="role-badge"><i class="fa-solid fa-coins"></i> Finance Office</div>
+                    <h2>Accounts Login</h2>
+                    <p>Track sessions, process payroll, and manage tuition pricing.</p>
+                </div>
+                <!-- White high visibility card for credentials -->
+                <div class="credentials-card">
+                    <form action="process_login.php" method="POST" class="login-form">
+                        <input type="hidden" name="role" value="accounts">
+                        <div id="accounts-error" class="login-error"></div>
+                        <div class="input-group">
+                            <label>Email or Staff ID</label>
+                            <div class="input-wrap">
+                                <input type="text" name="identifier" required placeholder="accounts@sanitytuition.com" autocomplete="email">
+                                <i class="fa-solid fa-briefcase input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <div class="input-wrap">
+                                <input type="password" name="password" id="pw-accounts" required placeholder="••••••••" autocomplete="current-password">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <button type="button" class="pw-toggle" onclick="togglePw('pw-accounts',this)" tabindex="-1">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-opts">
+                            <label class="remember-label"><input type="checkbox" name="remember"> Remember me</label>
+                            <a href="forgot_password.php?tab=accounts" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn-login">
+                            <span class="btn-text"><i class="fa-solid fa-book-open-reader"></i> Open Accounts Ledger</span>
+                            <span class="btn-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Authenticating…</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Security note -->
+            <div class="security-note">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>All connections are secured with TLS 1.3 encryption</span>
+            </div>
+        </div><!-- /form-scroll -->
+    </div><!-- /form-panel -->
+</div><!-- /page-layout -->
+
+<script>
+/* ── Particle generator ── */
+(function() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `
+            left: ${Math.random() * 100}%;
+            width: ${1.5 + Math.random() * 3.5}px;
+            height: ${1.5 + Math.random() * 3.5}px;
+            animation-delay: ${Math.random() * 15}s;
+            animation-duration: ${9 + Math.random() * 11}s;
+            opacity: ${0.15 + Math.random() * 0.45};
+        `;
+        container.appendChild(p);
+    }
+})();
+
+/* ── Tab switching ── */
+const VALID_TABS = ['admin', 'parent', 'teachers', 'timetable', 'accounts', 'student'];
+
+function activateTab(tab) {
+    if (!VALID_TABS.includes(tab)) tab = 'parent';
+
+    document.querySelectorAll('.form-wrapper').forEach(f => f.classList.remove('active'));
+
+    const wrapper = document.getElementById('form-' + tab);
+    if (wrapper) wrapper.classList.add('active');
+
+    // Dynamically update the back button link and text
+    const backBtn = document.getElementById('backButton');
+    const backText = document.getElementById('backButtonText');
+    if (backBtn) {
+        if (tab === 'admin') {
+            backBtn.href = 'portal.html';
+            if (backText) backText.textContent = 'Back to Portal';
+            backBtn.title = 'Return to Workstation Portal';
+        } else {
+            backBtn.href = 'index.html';
+            if (backText) backText.textContent = 'Back to Site';
+            backBtn.title = 'Return to Homepage';
+        }
+    }
+
+    // Focus first input smoothly
+    setTimeout(() => {
+        const inp = wrapper ? wrapper.querySelector('input[type="text"], input[type="email"]') : null;
+        if (inp) inp.focus();
+    }, 350);
+
+    window.location.hash = tab;
+}
+
+
+/* ── Read hash / URL error on load ── */
+function initPage() {
+    const hash   = window.location.hash.replace('#', '');
+    const params = new URLSearchParams(window.location.search);
+    const tab    = VALID_TABS.includes(hash) ? hash : 'parent';
+    activateTab(tab);
+
+    const err = params.get('error');
+    if (err) {
+        const errEl = document.getElementById(tab + '-error');
+        if (errEl) {
+            errEl.textContent = '⚠️ ' + decodeURIComponent(err);
+            errEl.style.display = 'block';
+        }
+    }
+}
+document.addEventListener('DOMContentLoaded', initPage);
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (VALID_TABS.includes(hash)) activateTab(hash);
+});
+
+/* ── Password toggle ── */
+function togglePw(id, btn) {
+    const inp = document.getElementById(id);
+    const icon = btn.querySelector('i');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+        btn.title = 'Hide password';
+    } else {
+        inp.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+        btn.title = 'Show password';
+    }
+}
+
+/* ── Loading state on submit ── */
+document.querySelectorAll('.login-form').forEach(form => {
+    form.addEventListener('submit', function() {
+        const btn = this.querySelector('.btn-login');
+        if (btn) btn.classList.add('loading');
+    });
+});
+
+/* ── Fetch live stats ── */
+function loadStats() {
+    fetch('api/api_public_stats.php')
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'success') {
+                animateCount('stat-sessions', d.scheduled_lessons || 0);
+                animateCount('stat-users',    d.active_users     || 0);
+                animateCount('stat-enrolments', d.new_applications || 0);
+            }
+        })
+        .catch(() => {
+            ['stat-sessions','stat-users','stat-enrolments'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '—';
+            });
+        });
+}
+
+function animateCount(id, target) {
+    const el = document.getElementById(id);
+    if (!el || target === 0) { if (el) el.textContent = target; return; }
+    let start = 0;
+    const step = Math.ceil(target / 30);
+    const t = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = start.toLocaleString();
+        if (start >= target) clearInterval(t);
+    }, 40);
+}
+
+
+function openRegisterModal() {
+    document.getElementById('register-modal').classList.add('open');
+    const container = document.getElementById('reg-subjects-container');
+    container.innerHTML = '<span style="color:var(--gray-400); font-style:italic; font-size:0.82rem;">Loading subjects...</span>';
+    
+    fetch('api/api_resources.php?action=get_subjects')
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'success') {
+                let html = '';
+                d.subjects.forEach(sub => {
+                    html += `
+                    <label class="subj-item">
+                        <input type="checkbox" name="reg_subjects" value="${sub.id}">
+                        <span>${sub.name}</span>
+                    </label>`;
+                });
+                container.innerHTML = html || '<span style="color:var(--gray-400); font-style:italic; font-size:0.82rem;">No subjects configured yet</span>';
+            } else {
+                container.innerHTML = '<span style="color:red; font-size:0.82rem;">Error loading subjects</span>';
+            }
+        })
+        .catch(() => {
+            container.innerHTML = '<span style="color:red; font-size:0.82rem;">Network error loading subjects</span>';
+        });
+}
+
+function closeRegisterModal() {
+    document.getElementById('register-modal').classList.remove('open');
+    document.getElementById('reg-error').style.display = 'none';
+    document.getElementById('reg-success').style.display = 'none';
+    // Clear form
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-phone').value = '';
+    document.getElementById('reg-pass').value = '';
+    document.getElementById('reg-question').value = '';
+    document.getElementById('reg-answer').value = '';
+    document.getElementById('reg-custom-subjects').value = '';
+}
+
+function submitRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('reg-submit-btn');
+    btn.disabled = true;
+    
+    const name = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
+    const phone = document.getElementById('reg-phone').value;
+    const password = document.getElementById('reg-pass').value;
+    const question = document.getElementById('reg-question').value;
+    const answer = document.getElementById('reg-answer').value;
+    const customSubjects = document.getElementById('reg-custom-subjects').value;
+    
+    const checkboxes = document.querySelectorAll('input[name="reg_subjects"]:checked');
+    const subjectIds = Array.from(checkboxes).map(cb => cb.value).join(',');
+    
+    const fd = new FormData();
+    fd.append('action', 'register_teacher');
+    fd.append('name', name);
+    fd.append('email', email);
+    fd.append('phone', phone);
+    fd.append('password', password);
+    fd.append('security_question', question);
+    fd.append('security_answer', answer);
+    fd.append('subject_ids', subjectIds);
+    fd.append('custom_subjects', customSubjects);
+    
+    const errorDiv = document.getElementById('reg-error');
+    const successDiv = document.getElementById('reg-success');
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    fetch('api/api_teacher_register.php', {
+        method: 'POST',
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        btn.disabled = false;
+        if (d.status === 'success') {
+            successDiv.textContent = d.message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                closeRegisterModal();
+            }, 3500);
+        } else {
+            errorDiv.textContent = d.message;
+            errorDiv.style.display = 'block';
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        errorDiv.textContent = 'A connection error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+    });
+}
+
+
+loadStats();
+</script>
+
+    <!-- Teacher Registration Modal -->
+    <div class="modal-bg" id="register-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chalkboard-teacher" style="margin-right:8px;color:var(--accent);"></i>Teacher Registration</h3>
+                <button class="modal-close" onclick="closeRegisterModal()">&times;</button>
+            </div>
+            <form onsubmit="submitRegister(event)">
+                <div id="reg-error" class="login-error" style="display:none; margin-bottom:15px; padding:12px; background:#FEE2E2; color:#991B1B; border-radius:10px; border:1px solid #FCA5A5; font-size:0.85rem; font-weight: 600;"></div>
+                <div id="reg-success" class="login-error" style="display:none; margin-bottom:15px; padding:12px; background:#D1FAE5; color:#065F46; border-radius:10px; border:1px solid #A7F3D0; font-size:0.85rem; font-weight: 600;"></div>
+                
+                <div class="input-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--primary);">Full Name</label>
+                    <input type="text" id="reg-name" required placeholder="e.g. Jane Mwangi" style="width:100%; padding:10px 14px; border:1px solid var(--gray-200); border-radius:8px; font-size:0.9rem; font-family:inherit;">
+                </div>
+                <div class="input-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--primary);">Email Address</label>
+                    <input type="email" id="reg-email" required placeholder="e.g. jane.mwangi@sanitytuition.com" style="width:100%; padding:10px 14px; border:1px solid var(--gray-200); border-radius:8px; font-size:0.9rem; font-family:inherit;">
+                </div>
+                <div class="input-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--primary);">Phone Number</label>
+                    <input type="tel" id="reg-phone" required placeholder="e.g. +254 712 345 678" style="width:100%; padding:10px 14px; border:1px solid var(--gray-200); border-radius:8px; font-size:0.9rem; font-family:inherit;">
+                </div>
+                <div class="input-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--primary);">Custom Password</label>
+                    <input type="password" id="reg-pass" required placeholder="Create secure password" style="width:100%; padding:10px 14px; border:1px solid var(--gray-200); border-radius:8px; font-size:0.9rem; font-family:inherit;">
+                </div>
+                <div class="input-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--primary);">Security Question</label>
+                    <select id="reg-question" required style="width:100%; padding:10px 14px; border:1px solid var(--gray-200); border-radius:8px; font-size:0.9rem; font-family:inherit; background:#fff; cursor:pointer;">
+                        <option value="">Select a security question</option>
+                        <option value="What was your first pet's name?">What was your first pet's name?</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What was the name of your first school?">What was the name of your first school?</option>
+                        <option value="In what city were you born?">In what city were you born?</option>
+                    </select>
+                </div>
+                <div class="input-group" style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-weight:700; font-size:0.85rem; color:var(--primary);">Security Answer</label>
+                    <input type="text" id="reg-answer" required placeholder="Your secret answer" style="width:100%; padding:10px 14px; border:1px solid var(--gray-200); border-radius:8px; font-size:0.9rem; font-family:inherit;">
+                </div>
+                
+                <div style="margin-bottom:15px; background: rgba(74,14,23,0.02); padding: 15px; border-radius: 10px; border: 1px dashed rgba(74,14,23,0.12);">
+                    <label style="display:block; font-weight:700; margin-bottom:8px; font-size:0.85rem; color:var(--primary);"><i class="fa-solid fa-book" style="margin-right:6px;color:var(--accent);"></i>Subjects You Teach</label>
+                    <div class="subj-grid" id="reg-subjects-container">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+                
+                <input type="hidden" id="reg-custom-subjects" value="">
+                
+                <button type="submit" class="btn-login" id="reg-submit-btn" style="width:100%; padding:12px 20px;">
+                    <span class="btn-text"><i class="fa-solid fa-user-plus"></i> Submit Registration Request</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

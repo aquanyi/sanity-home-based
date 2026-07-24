@@ -1,0 +1,193 @@
+﻿    </div>
+
+    <!-- PARENT INVOICE GENERATOR -->
+    <div id="section-parent-invoice" class="section">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-paper-plane" style="color:var(--accent);margin-right:10px;"></i>Parent Invoice Generator</h1>
+            <p>Build, edit and print a professional fee invoice for any parent â€” with session details, teacher names and payment instructions.</p>
+        </div>
+
+        <!-- Step 1: Select student & period -->
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;">
+            <div>
+                <div class="panel">
+                    <div class="panel-header"><h2><i class="fa-solid fa-sliders"></i> Build Invoice</h2></div>
+
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label>Student</label>
+                        <select id="pi-student" class="form-control" onchange="piLoadSessions()"></select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label>Date From</label>
+                        <input type="date" id="pi-from" class="form-control" onchange="piLoadSessions()">
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label>Date To</label>
+                        <input type="date" id="pi-to" class="form-control" onchange="piLoadSessions()">
+                    </div>
+                    <div class="form-group" style="margin-bottom:18px;">
+                        <label>Invoice Title / Note (optional)</label>
+                        <input type="text" id="pi-note" class="form-control" placeholder="e.g. Term 2 Â· July 2026" oninput="piSyncNote()">
+                    </div>
+
+                    <div style="background:var(--cream);border-radius:12px;padding:16px;margin-bottom:16px;">
+                        <p style="font-size:0.78rem;font-weight:800;text-transform:uppercase;color:var(--gray-600);margin-bottom:10px;">Bank / Payment Details</p>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.77rem;">Bank Name</label>
+                            <input type="text" id="pi-bank" class="form-control" value="Equity Bank Kenya" oninput="piSyncBank()">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.77rem;">Account Name</label>
+                            <input type="text" id="pi-accname" class="form-control" value="Sanity Homebased Tuition Academy" oninput="piSyncBank()">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.77rem;">Account Number</label>
+                            <input type="text" id="pi-accnum" class="form-control" value="0770299736484" oninput="piSyncBank()">
+                        </div>
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label style="font-size:0.77rem;">M-Pesa Paybill / Till</label>
+                            <input type="text" id="pi-mpesa" class="form-control" value="Paybill: 247247 Â· Acc: 0770299736484" oninput="piSyncBank()">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.77rem;">Due Date</label>
+                            <input type="date" id="pi-due" class="form-control" oninput="piSyncBank()">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label>Additional Notes for Parent</label>
+                        <textarea id="pi-footer-note" class="form-control" rows="3" placeholder="e.g. Kindly pay by the due date. For queries call +254 716 942 939" oninput="piSyncFooter()" style="resize:vertical;"></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="piOpenPreview()">
+                        <i class="fa-solid fa-eye"></i> Preview & Print Invoice
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Invoice Preview -->
+            <div id="pi-preview-panel" class="panel" style="min-height:500px;">
+                <div id="pi-empty-state" style="text-align:center;padding:80px 20px;color:var(--gray-500);">
+                    <i class="fa-solid fa-file-invoice" style="font-size:4rem;opacity:0.2;display:block;margin-bottom:18px;"></i>
+                    <strong>Select a student and date range</strong><br>
+                    <span style="font-size:0.88rem;">Your invoice preview will appear here.</span>
+                </div>
+
+                <!-- Invoice Preview Area -->
+                <div id="pi-preview-area" style="display:none;">
+                    <!-- Header -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #E5A93B;padding-bottom:16px;margin-bottom:20px;">
+                        <div style="display:flex;align-items:center;gap:16px;">
+                            <img src="logo.png" style="height:64px;">
+                            <div>
+                                <div style="font-size:1.25rem;font-weight:900;color:#4A0E17;letter-spacing:0.3px;">SANITY HOMEBASED TUITION ACADEMY</div>
+                                <div style="font-size:0.8rem;color:#6C757D;margin-top:3px;">Email: accounts@sanityeducation.com &nbsp;|&nbsp; Tel: +254 716 942 939 / +254 731 091 000</div>
+                                <div style="font-size:0.78rem;color:#6C757D;">P.O. Box 12345, Nairobi, Kenya</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="background:linear-gradient(135deg,#4A0E17,#6b1422);color:white;padding:8px 18px;border-radius:10px;font-weight:800;font-size:1rem;letter-spacing:1px;">FEE INVOICE</div>
+                            <div style="font-size:0.82rem;color:#6C757D;margin-top:6px;">Invoice No: <strong id="pi-inv-number">INV-001</strong></div>
+                            <div style="font-size:0.82rem;color:#6C757D;">Date: <strong id="pi-inv-date"></strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Billed To / Student -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                        <div style="background:#FAF7F2;border-radius:10px;padding:16px;border-left:4px solid #4A0E17;">
+                            <p style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:#6C757D;margin-bottom:8px;">Billed To</p>
+                            <div style="font-weight:800;font-size:1rem;color:#1e293b;" id="pi-parent-name-preview">â€”</div>
+                            <div style="font-size:0.85rem;color:#6C757D;margin-top:4px;" id="pi-parent-email-preview">â€”</div>
+                        </div>
+                        <div style="background:#FAF7F2;border-radius:10px;padding:16px;border-left:4px solid #E5A93B;">
+                            <p style="font-size:0.72rem;font-weight:800;text-transform:uppercase;color:#6C757D;margin-bottom:8px;">Student</p>
+                            <div style="font-weight:800;font-size:1rem;color:#1e293b;" id="pi-student-name-preview">â€”</div>
+                            <div style="font-size:0.85rem;color:#6C757D;margin-top:4px;" id="pi-student-grade-preview">â€”</div>
+                            <div style="font-size:0.82rem;color:#6C757D;margin-top:2px;" id="pi-period-preview">â€”</div>
+                        </div>
+                    </div>
+
+                    <!-- Note / Title -->
+                    <div id="pi-note-preview" style="background:rgba(229,169,59,0.1);border:1px solid rgba(229,169,59,0.4);border-radius:8px;padding:10px 14px;margin-bottom:18px;font-weight:700;color:#4A0E17;font-size:0.92rem;display:none;"></div>
+
+                    <!-- Sessions table (editable) -->
+                    <div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                        <h3 style="font-size:0.95rem;color:#4A0E17;font-weight:800;"><i class="fa-solid fa-list-ol"></i> Session Details</h3>
+                        <button class="btn btn-outline btn-sm" onclick="piAddRow()"><i class="fa-solid fa-plus"></i> Add Row</button>
+                    </div>
+                    <div class="table-wrap" style="margin-bottom:18px;">
+                        <table id="pi-sessions-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">#</th>
+                                    <th>Date</th>
+                                    <th>Tutor</th>
+                                    <th>Session Type</th>
+                                    <th>Amount (KES)</th>
+                                    <th style="width:50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="pi-sessions-tbody">
+                                <tr><td colspan="6" class="empty-row">No sessions loaded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totals -->
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+                        <div style="min-width:280px;">
+                            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:0.9rem;">
+                                <span style="color:#6C757D;">Subtotal</span>
+                                <span id="pi-subtotal-preview" style="font-weight:700;">KES 0.00</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:0.9rem;">
+                                <span style="color:#6C757D;">Previously Paid</span>
+                                <span id="pi-paid-preview" style="font-weight:700;color:#047857;">KES 0.00</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;padding:12px 0;background:linear-gradient(135deg,#4A0E17,#30080E);border-radius:8px;padding:12px 16px;margin-top:8px;">
+                                <span style="color:rgba(255,255,255,0.85);font-weight:700;">AMOUNT DUE</span>
+                                <span id="pi-due-preview" style="color:#E5A93B;font-weight:900;font-size:1.1rem;">KES 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment details -->
+                    <div id="pi-bank-preview" style="background:#FAF7F2;border-radius:12px;padding:16px 20px;margin-bottom:18px;border:1px solid rgba(74,14,23,0.1);">
+                        <p style="font-size:0.75rem;font-weight:800;text-transform:uppercase;color:#6C757D;margin-bottom:10px;letter-spacing:0.8px;"><i class="fa-solid fa-building-columns"></i> Payment Instructions</p>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.88rem;">
+                            <div><span style="color:#6C757D;">Bank:</span> <strong id="pi-bank-name-p">Equity Bank Kenya</strong></div>
+                            <div><span style="color:#6C757D;">Account Name:</span> <strong id="pi-accname-p">Sanity Homebased Tuition Academy</strong></div>
+                            <div><span style="color:#6C757D;">Account No:</span> <strong id="pi-accnum-p">0770299736484</strong></div>
+                            <div><span style="color:#6C757D;">M-Pesa:</span> <strong id="pi-mpesa-p">Paybill: 247247 Â· Acc: 0770299736484</strong></div>
+                            <div><span style="color:#6C757D;">Due Date:</span> <strong id="pi-due-date-p" style="color:#DC2626;">â€”</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Footer note -->
+                    <div id="pi-footer-note-preview" style="font-size:0.85rem;color:#6C757D;font-style:italic;padding:10px 14px;border-top:1px dashed #e2e8f0;display:none;"></div>
+
+                    <!-- Signature area -->
+                    <div style="display:flex;justify-content:space-between;margin-top:30px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:0.82rem;color:#6C757D;">
+                        <div>Prepared by: <strong>Accounts Department</strong><br><div style="border-top:1px solid #4A0E17;width:160px;margin-top:28px;text-align:center;padding-top:4px;">Authorised Signature</div></div>
+                        <div style="text-align:right;"><strong style="color:#4A0E17;">Sanity Homebased Tuition Academy</strong><br><span>Thank you for choosing us!</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print Preview Modal -->
+        <div id="pi-print-modal" class="modal-bg">
+            <div class="modal-box" style="max-width:900px;">
+                <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3><i class="fa-solid fa-print"></i> Print Preview</h3>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn btn-primary" onclick="piDoPrint()"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+                        <button class="btn btn-outline" onclick="closeModal('pi-print-modal')"><i class="fa-solid fa-xmark"></i> Close</button>
+                    </div>
+                </div>
+                <div id="pi-modal-body" style="font-size:0.88rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXTRA EXPENSES -->

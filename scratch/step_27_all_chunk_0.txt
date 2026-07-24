@@ -1,0 +1,13 @@
+﻿    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-gauge-high"></i> Dashboard</div>
+
+    <div class="nav-section-label">Finance</div>
+    <div class="nav-item" onclick="switchTab('sessions', this)"><i class="fa-solid fa-calendar-check"></i> Completed Sessions</div>
+    <div class="nav-item" onclick="switchTab('monthly', this)"><i class="fa-solid fa-chart-bar"></i> Monthly Summary</div>
+    <div class="nav-item" onclick="switchTab('pricing', this)"><i class="fa-solid fa-tags"></i> Student Pricing</div>
+    <div class="nav-item" onclick="switchTab('invoices', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Invoices & Payments</div>
+    <div class="nav-item" onclick="switchTab('payroll', this)"><i class="fa-solid fa-hand-holding-dollar"></i> Teacher Payroll</div>
+
+    <div class="nav-section-label">Operations</div>
+    <div class="nav-item" onclick="switchTab('expenses', this)"><i class="fa-solid fa-wallet"></i> Extra Expenses</div>
+</aside>

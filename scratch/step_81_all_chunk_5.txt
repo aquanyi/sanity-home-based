@@ -1,0 +1,405 @@
+﻿            renderExpensesRows(expLastData);
+        })
+        .catch(() => showAlert('error', 'Network error loading expenses.'));
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// FULL SCHOOL FINANCIAL REPORT MODULE
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let finRptData      = null;
+let finRptPeriod    = 'month';
+let finRptBreakdown = 'venue';
+
+const finVenueLabels = {
+    school:      'ðŸ« School (1-on-1)',
+    home_visit:  'ðŸ  Home Visit',
+    online_meet: 'ðŸŽ¥ Online (Google Meet)',
+    online_zoom: 'ðŸ’» Online (Zoom)'
+};
+const finCatMeta = {
+    inventory:       { label:'Inventory',      icon:'ðŸ“¦', color:'#3B82F6' },
+    utility:         { label:'Utilities',       icon:'âš¡',  color:'#10B981' },
+    general_repairs: { label:'General Repairs', icon:'ðŸ”§', color:'#F59E0B' },
+    petty_cash:      { label:'Petty Cash',      icon:'â˜•',  color:'#8B5CF6' },
+};
+
+function fmt2(n) {
+    return Number(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function initFinReportTab() {
+    setFinPeriod('month');
+    loadFinDropdowns();
+}
+
+function loadFinDropdowns() {
+    fetch('api_accounts.php?action=students_list')
+        .then(r => r.json())
+        .then(d => {
+            const sel = document.getElementById('fin-student');
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">All Students</option>';
+            (d.students || []).forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${escHtml(s.student_name)}</option>`;
+            });
+            if (cur) sel.value = cur;
+        }).catch(()=>{});
+    fetch('api_accounts.php?action=teachers_list')
+        .then(r => r.json())
+        .then(d => {
+            const sel = document.getElementById('fin-teacher');
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">All Teachers</option>';
+            (d.teachers || []).forEach(t => {
+                sel.innerHTML += `<option value="${t.id}">${escHtml(t.name)}</option>`;
+            });
+            if (cur) sel.value = cur;
+        }).catch(()=>{});
+}
+
+function setFinPeriod(period) {
+    finRptPeriod = period;
+    ['today','week','month','quarter','year','custom'].forEach(p => {
+        const btn = document.getElementById('fin-q-' + p);
+        if (btn) btn.className = p === period ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+    });
+    const today  = new Date();
+    const fmt    = d => d.toISOString().split('T')[0];
+    const fromEl = document.getElementById('fin-from');
+    const toEl   = document.getElementById('fin-to');
+    if (!fromEl || !toEl) return;
+    if (period === 'today')   { fromEl.value = fmt(today); toEl.value = fmt(today); }
+    else if (period === 'week') {
+        const mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay()+6)%7));
+        const sun = new Date(mon);   sun.setDate(mon.getDate()+6);
+        fromEl.value = fmt(mon); toEl.value = fmt(sun);
+    } else if (period === 'month') {
+        fromEl.value = fmt(new Date(today.getFullYear(), today.getMonth(), 1));
+        toEl.value   = fmt(new Date(today.getFullYear(), today.getMonth()+1, 0));
+    } else if (period === 'quarter') {
+        const q = Math.floor(today.getMonth()/3);
+        fromEl.value = fmt(new Date(today.getFullYear(), q*3, 1));
+        toEl.value   = fmt(new Date(today.getFullYear(), q*3+3, 0));
+    } else if (period === 'year') {
+        fromEl.value = today.getFullYear() + '-01-01';
+        toEl.value   = today.getFullYear() + '-12-31';
+    }
+}
+
+function markFinCustom() {
+    finRptPeriod = 'custom';
+    ['today','week','month','quarter','year'].forEach(p => {
+        const btn = document.getElementById('fin-q-' + p);
+        if (btn) btn.className = 'btn btn-outline btn-sm';
+    });
+    const b = document.getElementById('fin-q-custom');
+    if (b) b.className = 'btn btn-primary btn-sm';
+}
+
+function resetFinFilters() {
+    document.getElementById('fin-student').value = '';
+    document.getElementById('fin-teacher').value = '';
+    document.getElementById('fin-venue').value   = '';
+    setFinPeriod('month');
+}
+
+function generateFinReport() {
+    const from      = document.getElementById('fin-from').value;
+    const to        = document.getElementById('fin-to').value;
+    const studentId = document.getElementById('fin-student').value;
+    const teacherId = document.getElementById('fin-teacher').value;
+    const venue     = document.getElementById('fin-venue').value;
+    const genBtn    = document.getElementById('fin-gen-btn');
+    if (!from || !to) { showAlert('error','Please select both From and To dates.'); return; }
+    if (from > to)    { showAlert('error','From Date cannot be after To Date.'); return; }
+    genBtn.disabled = true;
+    genBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generatingâ€¦';
+    const url = `api_accounts.php?action=financial_report&period=${finRptPeriod}&from_date=${from}&to_date=${to}&student_id=${studentId}&teacher_id=${teacherId}&venue_type=${venue}`;
+    fetch(url)
+        .then(r => r.json())
+        .then(d => {
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fa-solid fa-chart-column"></i> Generate Report';
+            if (d.status !== 'success') { showAlert('error', d.message); return; }
+            finRptData = d;
+            renderFinReport(d, from, to);
+        })
+        .catch(() => {
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fa-solid fa-chart-column"></i> Generate Report';
+            showAlert('error','Network error generating report.');
+        });
+}
+
+function renderFinReport(d, from, to) {
+    document.getElementById('finrpt-empty-state').style.display = 'none';
+    document.getElementById('finrpt-output').style.display      = 'block';
+
+    // Title
+    const sSel = document.getElementById('fin-student');
+    const tSel = document.getElementById('fin-teacher');
+    const vSel = document.getElementById('fin-venue');
+    const activeFilters = [
+        sSel.value ? sSel.options[sSel.selectedIndex].text : '',
+        tSel.value ? tSel.options[tSel.selectedIndex].text : '',
+        vSel.value ? vSel.options[vSel.selectedIndex].text : ''
+    ].filter(Boolean);
+    document.getElementById('finrpt-title').textContent = 'School Financial Report';
+    document.getElementById('finrpt-subtitle').textContent =
+        `Period: ${from} â†’ ${to}` +
+        (activeFilters.length ? `  |  Filters: ${activeFilters.join(', ')}` : '') +
+        `  |  ${d.sessions_count} session${d.sessions_count!==1?'s':''}`;
+
+    // KPI cards
+    const net = d.net_position;
+    document.getElementById('finrpt-kpi-cards').innerHTML = `
+        <div class="metric-card" style="border-left:4px solid #10B981;">
+            <div class="metric-info"><h4>Revenue Billed</h4><p style="font-size:1.35rem;color:#10B981;">${fmt2(d.total_billed)}</p></div>
+            <div class="metric-icon" style="background:rgba(16,185,129,0.12);color:#10B981;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        </div>
+        <div class="metric-card" style="border-left:4px solid #3B82F6;">
+            <div class="metric-info"><h4>Collected (Period)</h4><p style="font-size:1.35rem;color:#3B82F6;">${fmt2(d.collected_in_period)}</p></div>
+            <div class="metric-icon" style="background:rgba(59,130,246,0.12);color:#3B82F6;"><i class="fa-solid fa-money-bill-wave"></i></div>
+        </div>
+        <div class="metric-card" style="border-left:4px solid #DC2626;">
+            <div class="metric-info"><h4>Outstanding</h4><p style="font-size:1.35rem;color:#DC2626;">${fmt2(d.outstanding)}</p></div>
+            <div class="metric-icon" style="background:rgba(220,38,38,0.12);color:#DC2626;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        </div>
+        <div class="metric-card" style="border-left:4px solid #F59E0B;">
+            <div class="metric-info"><h4>Total Expenses</h4><p style="font-size:1.35rem;color:#F59E0B;">${fmt2(d.exp_total)}</p></div>
+            <div class="metric-icon" style="background:rgba(245,158,11,0.12);color:#F59E0B;"><i class="fa-solid fa-cart-shopping"></i></div>
+        </div>
+        <div class="metric-card" style="border-left:4px solid ${net>=0?'#10B981':'#DC2626'};">
+            <div class="metric-info"><h4>Net Position</h4><p style="font-size:1.35rem;color:${net>=0?'#10B981':'#DC2626'};">KES ${net<0?'-':''}${fmt2(Math.abs(net))}</p></div>
+            <div class="metric-icon" style="background:${net>=0?'rgba(16,185,129,0.12)':'rgba(220,38,38,0.12)'};color:${net>=0?'#10B981':'#DC2626'};"><i class="fa-solid fa-scale-balanced"></i></div>
+        </div>`;
+
+    // Net banner
+    const banner = document.getElementById('finrpt-net-banner');
+    banner.style.background = net >= 0
+        ? 'linear-gradient(135deg,#064E3B,#047857)'
+        : 'linear-gradient(135deg,#7F1D1D,#991B1B)';
+    banner.style.color = 'white';
+    document.getElementById('finrpt-net-value').textContent  = (net<0?'-':'') + 'KES ' + fmt2(Math.abs(net));
+    document.getElementById('finrpt-net-hint').textContent   = net>=0 ? 'âœ… Surplus â€” Collections cover all operational expenses.' : 'âš ï¸ Deficit â€” Expenses exceed revenue collected in this period.';
+    document.getElementById('finrpt-period-label').textContent  = `${from} â†’ ${to}`;
+    document.getElementById('finrpt-sessions-label').textContent = `${d.sessions_count} sessions completed`;
+
+    // Revenue overview
+    document.getElementById('fin-rev-billed').textContent      = 'KES ' + fmt2(d.total_billed);
+    document.getElementById('fin-rev-collected').textContent   = 'KES ' + fmt2(d.collected_in_period);
+    document.getElementById('fin-rev-outstanding').textContent = 'KES ' + fmt2(d.outstanding);
+    document.getElementById('fin-rev-teacher').textContent     = 'KES ' + fmt2(d.total_teacher_earned);
+    document.getElementById('fin-rev-sessions').textContent    = d.sessions_count + ' sessions';
+
+    // Expenses overview table
+    const cats = ['inventory','utility','general_repairs','petty_cash'];
+    document.getElementById('fin-exp-overview-table').innerHTML =
+        cats.map(c => {
+            const m = finCatMeta[c];
+            return `<tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:9px 0;color:var(--gray-600);">${m.icon} ${m.label}</td><td style="padding:9px 0;text-align:right;font-weight:700;color:${m.color};">KES ${fmt2(d.exp_by_cat[c]||0)}</td></tr>`;
+        }).join('') +
+        `<tr><td style="padding:11px 0;font-weight:800;color:#EF4444;">Total Expenses</td><td style="padding:11px 0;text-align:right;font-weight:800;font-size:1.05rem;color:#EF4444;">KES ${fmt2(d.exp_total)}</td></tr>`;
+
+    // Breakdown tabs
+    setFinBreakdown('venue');
+
+    // Session Log
+    document.getElementById('fin-sessions-badge').textContent = `${d.sessions_count} sessions`;
+    const sTbody = document.getElementById('fin-sessions-tbody');
+    const sTfoot = document.getElementById('fin-sessions-tfoot');
+    if (d.sessions.length) {
+        let bTot = 0, tTot = 0;
+        sTbody.innerHTML = d.sessions.map((s,i) => {
+            const b = parseFloat(s.billed), t = parseFloat(s.teacher_earned);
+            bTot += b; tTot += t;
+            return `<tr>
+                <td style="color:var(--gray-600);">${i+1}</td>
+                <td>${s.lesson_date}</td>
+                <td><strong>${escHtml(s.student_name)}</strong></td>
+                <td>${escHtml(s.teacher_name)}</td>
+                <td style="font-size:0.83rem;">${finVenueLabels[s.venue_type]||s.venue_type}</td>
+                <td style="text-align:right;"><strong>KES ${fmt2(b)}</strong></td>
+                <td style="text-align:right;color:#047857;">KES ${fmt2(t)}</td>
+            </tr>`;
+        }).join('');
+        sTfoot.innerHTML = `<tr style="background:var(--cream);">
+            <td colspan="5" style="text-align:right;font-weight:800;padding:12px 16px;">TOTALS (${d.sessions_count} sessions)</td>
+            <td style="text-align:right;font-weight:800;padding:12px 16px;color:var(--primary);">KES ${fmt2(bTot)}</td>
+            <td style="text-align:right;font-weight:800;padding:12px 16px;color:#047857;">KES ${fmt2(tTot)}</td>
+        </tr>`;
+    } else {
+        sTbody.innerHTML = '<tr><td colspan="7" class="empty-row">No completed sessions in this period.</td></tr>';
+        sTfoot.innerHTML = '';
+    }
+
+    // Expenses Detail
+    document.getElementById('fin-exp-badge').textContent = `${d.expenses.length} items â€¢ KES ${fmt2(d.exp_total)}`;
+    const eTbody = document.getElementById('fin-exp-tbody');
+    const eTfoot = document.getElementById('fin-exp-tfoot');
+    if (d.expenses.length) {
+        let eTotal = 0;
+        eTbody.innerHTML = d.expenses.map((e,i) => {
+            const amt = parseFloat(e.amount); eTotal += amt;
+            const m = finCatMeta[e.category]||{};
+            return `<tr>
+                <td style="color:var(--gray-600);">${i+1}</td>
+                <td>${e.expense_date}</td>
+                <td><span style="color:${m.color||'#333'};font-weight:700;">${m.icon||''} ${m.label||e.category}</span></td>
+                <td><strong>${escHtml(e.item_name)}</strong></td>
+                <td style="font-size:0.85rem;color:var(--gray-600);">${e.description?escHtml(e.description):'â€”'}</td>
+                <td style="font-size:0.83rem;">${e.reference?escHtml(e.reference):'â€”'}</td>
+                <td style="text-align:right;"><strong>KES ${fmt2(amt)}</strong></td>
+            </tr>`;
+        }).join('');
+        eTfoot.innerHTML = `<tr style="background:var(--cream);">
+            <td colspan="6" style="text-align:right;font-weight:800;padding:12px 16px;">TOTAL EXPENSES</td>
+            <td style="text-align:right;font-weight:800;color:#EF4444;padding:12px 16px;">KES ${fmt2(eTotal)}</td>
+        </tr>`;
+    } else {
+        eTbody.innerHTML = '<tr><td colspan="7" class="empty-row">No expenses recorded in this period.</td></tr>';
+        eTfoot.innerHTML = '';
+    }
+}
+
+function setFinBreakdown(type) {
+    finRptBreakdown = type;
+    ['venue','student','teacher'].forEach(t => {
+        const btn = document.getElementById('fin-brk-' + t + '-btn');
+        if (btn) btn.className = t === type ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+    });
+    if (!finRptData) return;
+    const d  = finRptData;
+    const el = document.getElementById('fin-brk-content');
+    if (type === 'venue') {
+        if (!d.by_venue.length) { el.innerHTML = '<p class="empty-row">No sessions in this period.</p>'; return; }
+        const grand = d.total_billed;
+        el.innerHTML = `<div class="table-wrap"><table>
+            <thead><tr><th>Lesson Type</th><th>Sessions</th><th style="text-align:right;">Revenue (KES)</th><th>Share</th></tr></thead>
+            <tbody>${d.by_venue.map(v => {
+                const pct = grand>0?((v.amount/grand)*100).toFixed(1):'0.0';
+                return `<tr>
+                    <td><strong>${finVenueLabels[v.venue]||v.venue}</strong></td>
+                    <td>${v.count}</td>
+                    <td style="text-align:right;font-weight:700;">KES ${fmt2(v.amount)}</td>
+                    <td style="min-width:140px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="flex:1;background:var(--gray-200);border-radius:4px;height:8px;"><div style="width:${pct}%;background:#10B981;height:8px;border-radius:4px;"></div></div>
+                            <span style="font-size:0.82rem;font-weight:700;color:#10B981;">${pct}%</span>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('')}</tbody>
+            <tfoot><tr style="background:var(--cream);"><td style="font-weight:800;padding:12px 16px;">TOTAL</td><td style="font-weight:800;">${d.sessions_count}</td><td style="font-weight:800;text-align:right;">KES ${fmt2(d.total_billed)}</td><td style="font-weight:800;">100%</td></tr></tfoot>
+        </table></div>`;
+    } else if (type === 'student') {
+        if (!d.by_student.length) { el.innerHTML = '<p class="empty-row">No student data in this period.</p>'; return; }
+        const sorted = [...d.by_student].sort((a,b) => b.billed-a.billed);
+        el.innerHTML = `<div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Student</th><th>Sessions</th><th style="text-align:right;">Billed (KES)</th></tr></thead>
+            <tbody>${sorted.map((s,i) => `<tr>
+                <td style="color:var(--gray-600);">${i+1}</td>
+                <td><strong>${escHtml(s.name)}</strong></td>
+                <td>${s.sessions}</td>
+                <td style="text-align:right;font-weight:700;">KES ${fmt2(s.billed)}</td>
+            </tr>`).join('')}</tbody>
+            <tfoot><tr style="background:var(--cream);"><td colspan="2" style="font-weight:800;padding:12px 16px;">TOTAL</td><td style="font-weight:800;">${d.sessions_count}</td><td style="font-weight:800;text-align:right;">KES ${fmt2(d.total_billed)}</td></tr></tfoot>
+        </table></div>`;
+    } else if (type === 'teacher') {
+        if (!d.by_teacher.length) { el.innerHTML = '<p class="empty-row">No teacher data in this period.</p>'; return; }
+        const sorted = [...d.by_teacher].sort((a,b) => b.earned-a.earned);
+        el.innerHTML = `<div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Teacher / Tutor</th><th>Sessions</th><th style="text-align:right;">Earned (KES)</th></tr></thead>
+            <tbody>${sorted.map((t,i) => `<tr>
+                <td style="color:var(--gray-600);">${i+1}</td>
+                <td><strong>${escHtml(t.name)}</strong></td>
+                <td>${t.sessions}</td>
+                <td style="text-align:right;font-weight:700;color:#047857;">KES ${fmt2(t.earned)}</td>
+            </tr>`).join('')}</tbody>
+            <tfoot><tr style="background:var(--cream);"><td colspan="2" style="font-weight:800;padding:12px 16px;">TOTAL</td><td style="font-weight:800;">${d.sessions_count}</td><td style="font-weight:800;text-align:right;color:#047857;">KES ${fmt2(d.total_teacher_earned)}</td></tr></tfoot>
+        </table></div>`;
+    }
+}
+
+function exportFinCSV() {
+    if (!finRptData) { showAlert('error','Generate a report first.'); return; }
+    const d    = finRptData;
+    const from = document.getElementById('fin-from').value;
+    const to   = document.getElementById('fin-to').value;
+    const rows = [
+        ['SANITY HOMEBASED TUITION ACADEMY'],
+        ['Full School Financial Report'],
+        [`Period: ${from} to ${to}`],
+        [`Generated: ${new Date().toLocaleString()}`],
+        [],
+        ['=== SUMMARY ==='],
+        ['Revenue Billed (Sessions)', d.total_billed.toFixed(2)],
+        ['Collected in Period', d.collected_in_period.toFixed(2)],
+        ['Outstanding Balance', d.outstanding.toFixed(2)],
+        ['Teacher Earnings', d.total_teacher_earned.toFixed(2)],
+        ['Total Expenses', d.exp_total.toFixed(2)],
+        ['NET POSITION', d.net_position.toFixed(2)],
+        [],
+        ['=== SESSION LOG ==='],
+        ['#','Date','Student','Teacher','Lesson Type','Billed (KES)','Teacher Earned (KES)'],
+        ...d.sessions.map((s,i) => [i+1, s.lesson_date, s.student_name, s.teacher_name, finVenueLabels[s.venue_type]||s.venue_type, parseFloat(s.billed).toFixed(2), parseFloat(s.teacher_earned).toFixed(2)]),
+        [],
+        ['=== EXPENSES LOG ==='],
+        ['#','Date','Category','Item','Description','Reference','Amount (KES)'],
+        ...d.expenses.map((e,i) => [i+1, e.expense_date, finCatMeta[e.category]?.label||e.category, e.item_name, e.description||'', e.reference||'', parseFloat(e.amount).toFixed(2)]),
+    ];
+    const csv  = rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv],{type:'text/csv'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `financial_report_${from}_to_${to}.csv`; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function printFinReport() {
+    if (!finRptData) { showAlert('error','Generate a report first.'); return; }
+    const from    = document.getElementById('fin-from').value;
+    const to      = document.getElementById('fin-to').value;
+    const content = document.getElementById('finrpt-output').innerHTML;
+    const d       = finRptData;
+    const win = window.open('','_blank','width=1150,height=900');
+    win.document.write(`<!DOCTYPE html><html><head>
+        <title>Financial Report â€” ${from} to ${to}</title>
+        <style>
+            *{box-sizing:border-box;}
+            body{font-family:'Segoe UI',Arial,sans-serif;padding:30px;color:#1e293b;font-size:13px;}
+            h1,h2,h3{color:#4A0E17;margin:0 0 8px;}
+            table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+            th,td{padding:8px 10px;border:1px solid #e2e8f0;text-align:left;}
+            th{background:#f8fafc;font-weight:700;font-size:11px;text-transform:uppercase;}
+            tfoot tr{background:#FAF7F2;}
+            .panel{border:1px solid #e2e8f0;border-radius:8px;padding:16px 18px;margin-bottom:16px;}
+            .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;}
+            button,.btn,#finrpt-filter-panel,#finrpt-empty-state,.btn-group{display:none!important;}
+            #finrpt-net-banner{border-radius:10px;padding:16px 20px;margin-bottom:16px;color:#fff;}
+            .metrics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+            .metric-card{border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:12px;}
+            .metric-info h4{font-size:11px;color:#64748b;text-transform:uppercase;}
+            .metric-info p{font-size:1.1rem;font-weight:700;margin:4px 0;}
+            .metric-icon{display:none;}
+            .two-col-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+            @media print{body{padding:15px;} button{display:none!important;}}
+        </style></head><body>
+        <div style="display:flex;justify-content:space-between;border-bottom:3px solid #E5A93B;padding-bottom:12px;margin-bottom:18px;">
+            <div>
+                <h1 style="font-size:1.35rem;">SANITY HOMEBASED TUITION ACADEMY</h1>
+                <p style="margin:4px 0;color:#64748b;font-size:12px;">Full School Financial Report â€” Generated: ${new Date().toLocaleString()}</p>
+            </div>
+            <div style="text-align:right;font-size:12px;">
+                <strong>Period:</strong> ${from} to ${to}<br>
+                <strong>Sessions:</strong> ${d.sessions_count}<br>
+                <strong>Net Position:</strong> KES ${fmt2(d.net_position)}
+            </div>
+        </div>
+        ${content}
+        <script>window.onload=()=>window.print();<\/script>
+    </body></html>`);
+    win.document.close();
+}

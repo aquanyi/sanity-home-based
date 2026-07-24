@@ -1,0 +1,229 @@
+﻿// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// EXTRA EXPENSES MODULE
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let currentExpenseCategory = 'inventory';
+const expCategoryMeta = {
+    inventory: {
+        label: 'Inventory Management',
+        hint: 'ðŸ“¦ Track furniture and equipment purchases â€” desks, chairs, computers, and other physical assets.',
+        color: '#3B82F6',
+        icon: 'fa-boxes-stacked'
+    },
+    utility: {
+        label: 'Utility Management',
+        hint: 'âš¡ Track recurring utility expenses â€” electricity, water, books, computer repairs, and internet.',
+        color: '#10B981',
+        icon: 'fa-bolt'
+    },
+    general_repairs: {
+        label: 'General Repairs',
+        hint: 'ðŸ”§ Track maintenance and repair work â€” painting, plumbing, structural fixes, and building upkeep.',
+        color: '#F59E0B',
+        icon: 'fa-screwdriver-wrench'
+    },
+    petty_cash: {
+        label: 'Petty Cash',
+        hint: 'â˜• Track small daily expenses â€” tea, lunch, snacks, printing, and minor miscellaneous costs.',
+        color: '#8B5CF6',
+        icon: 'fa-mug-hot'
+    }
+};
+
+function initExpensesTab() {
+    // Populate month filter from allMonthly (already loaded)
+    const monthSel = document.getElementById('exp-filter-month');
+    if (monthSel) {
+        monthSel.innerHTML = '<option value="">All Months</option>';
+        allMonthly.forEach(m => {
+            monthSel.innerHTML += `<option value="${m.month}">${m.month}</option>`;
+        });
+        // Also add months from current date if no sessions
+        if (!allMonthly.length) {
+            const now = new Date();
+            for (let i = 0; i < 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const label = d.toLocaleString('default', { month: 'long' }) + ' ' + d.getFullYear();
+                monthSel.innerHTML += `<option value="${label}">${label}</option>`;
+            }
+        }
+    }
+    setExpenseTab('inventory');
+}
+
+function setExpenseTab(cat) {
+    currentExpenseCategory = cat;
+    // Update button styles
+    ['inventory','utility','general_repairs','petty_cash'].forEach(c => {
+        const btn = document.getElementById('exp-btn-' + c);
+        if (btn) btn.className = c === cat ? 'btn btn-primary' : 'btn btn-outline';
+    });
+    // Update panel title & hint
+    const meta = expCategoryMeta[cat];
+    const title = document.getElementById('exp-panel-title');
+    const hint  = document.getElementById('exp-category-hint');
+    if (title) title.textContent = meta.label;
+    if (hint)  hint.innerHTML = meta.hint;
+    loadExpenses();
+}
+
+function loadExpenses() {
+    const cat   = currentExpenseCategory;
+    const month = document.getElementById('exp-filter-month')?.value || '';
+    const tbody = document.getElementById('expenses-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Loadingâ€¦</td></tr>';
+
+    fetch(`api_accounts.php?action=get_expenses&category=${cat}&month=${encodeURIComponent(month)}`)
+        .then(r => r.json())
+        .then(d => {
+            if (d.status !== 'success') { showAlert('error', d.message); return; }
+
+            // Update summary cards
+            ['inventory','utility','general_repairs','petty_cash'].forEach(c => {
+                const el = document.getElementById('exp-total-' + c);
+                if (el) el.textContent = 'KES ' + (d.totals[c] || 0).toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+            });
+
+            const expenses = d.expenses || [];
+            const totalRow  = document.getElementById('expenses-total-row');
+            const countEl   = document.getElementById('expenses-count');
+            const subtotalEl = document.getElementById('expenses-subtotal');
+
+            if (!tbody) return;
+
+            if (!expenses.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No ${expCategoryMeta[cat].label} expenses recorded yet. Click "Add Expense" to start.</td></tr>`;
+                if (totalRow) totalRow.style.display = 'none';
+                return;
+            }
+
+            let subtotal = 0;
+            tbody.innerHTML = expenses.map(e => {
+                const amt = parseFloat(e.amount);
+                subtotal += amt;
+                return `<tr>
+                    <td><strong>${e.expense_date}</strong></td>
+                    <td><strong>${escHtml(e.item_name)}</strong></td>
+                    <td style="max-width:200px;font-size:0.87rem;color:var(--gray-600);">${e.description ? escHtml(e.description) : '<em style="color:var(--gray-500);">â€”</em>'}</td>
+                    <td style="font-size:0.85rem;">${e.reference ? escHtml(e.reference) : '<em style="color:var(--gray-500);">â€”</em>'}</td>
+                    <td style="font-size:0.84rem;color:var(--gray-600);">${escHtml(e.recorded_by_name)}</td>
+                    <td><strong style="color:var(--primary);">KES ${amt.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong></td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-outline btn-sm" onclick="editExpense(${e.id})">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-sm" style="background:#FEE2E2;color:#DC2626;border:none;font-weight:700;" onclick="deleteExpense(${e.id}, '${escHtml(e.item_name).replace(/'/g,"&#39;")}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            if (countEl)    countEl.textContent = expenses.length;
+            if (subtotalEl) subtotalEl.textContent = subtotal.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+            if (totalRow)   totalRow.style.display = 'flex';
+        })
+        .catch(() => showAlert('error', 'Network error loading expenses.'));
+}
+
+function openExpenseModal(id) {
+    document.getElementById('exp-id').value = id || '';
+    document.getElementById('exp-category-hidden').value = currentExpenseCategory;
+    document.getElementById('exp-item-name').value   = '';
+    document.getElementById('exp-date').value         = new Date().toISOString().split('T')[0];
+    document.getElementById('exp-amount').value       = '';
+    document.getElementById('exp-description').value  = '';
+    document.getElementById('exp-reference').value    = '';
+
+    const meta = expCategoryMeta[currentExpenseCategory];
+    document.getElementById('expense-modal-title').textContent    = id ? 'Edit Expense' : 'Add Expense';
+    document.getElementById('expense-modal-subtitle').textContent = `Category: ${meta.label}`;
+    document.getElementById('exp-submit-btn').innerHTML           = id ? '<i class="fa-solid fa-floppy-disk"></i> Update Expense' : '<i class="fa-solid fa-floppy-disk"></i> Save Expense';
+    document.getElementById('expenseModal').classList.add('open');
+}
+
+function editExpense(id) {
+    fetch(`api_accounts.php?action=get_expense_single&id=${id}`)
+        .then(r => r.json())
+        .then(d => {
+            if (d.status !== 'success') { showAlert('error', d.message); return; }
+            const e = d.expense;
+            document.getElementById('exp-id').value              = e.id;
+            document.getElementById('exp-category-hidden').value = e.category;
+            document.getElementById('exp-item-name').value       = e.item_name;
+            document.getElementById('exp-date').value            = e.expense_date;
+            document.getElementById('exp-amount').value          = e.amount;
+            document.getElementById('exp-description').value     = e.description || '';
+            document.getElementById('exp-reference').value       = e.reference || '';
+
+            const meta = expCategoryMeta[e.category] || {label: e.category};
+            document.getElementById('expense-modal-title').textContent    = 'Edit Expense';
+            document.getElementById('expense-modal-subtitle').textContent = `Category: ${meta.label}`;
+            document.getElementById('exp-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Expense';
+            document.getElementById('expenseModal').classList.add('open');
+        });
+}
+
+function saveExpense(e) {
+    e.preventDefault();
+    const id = document.getElementById('exp-id').value;
+    const fd = new FormData();
+    fd.append('action',       id ? 'update_expense' : 'add_expense');
+    if (id) fd.append('id',   id);
+    fd.append('category',     document.getElementById('exp-category-hidden').value);
+    fd.append('item_name',    document.getElementById('exp-item-name').value);
+    fd.append('expense_date', document.getElementById('exp-date').value);
+    fd.append('amount',       document.getElementById('exp-amount').value);
+    fd.append('description',  document.getElementById('exp-description').value);
+    fd.append('reference',    document.getElementById('exp-reference').value);
+
+    const btn = document.getElementById('exp-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Savingâ€¦';
+
+    fetch('api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(d => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Expense';
+            closeModal('expenseModal');
+            showAlert(d.status, d.message);
+            if (d.status === 'success') loadExpenses();
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Expense';
+            showAlert('error', 'Network error. Please try again.');
+        });
+}
+
+function deleteExpense(id, name) {
+    if (!confirm(`Delete expense "${name}"? This cannot be undone.`)) return;
+    const fd = new FormData();
+    fd.append('action', 'delete_expense');
+    fd.append('id', id);
+    fetch('api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(d => {
+            showAlert(d.status, d.message);
+            if (d.status === 'success') loadExpenses();
+        });
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Init
+window.onload = () => {
+    loadSessions();
+    const savedTab = localStorage.getItem('accounts_dashboard_active_tab');
+    if (savedTab) {
+        switchTab(savedTab);
+    }
+};
+</script>
+</body>
+</html>

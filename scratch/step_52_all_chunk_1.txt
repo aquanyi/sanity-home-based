@@ -1,0 +1,122 @@
+﻿    </div>
+
+    <!-- ===== EXPENSE REPORTS ===== -->
+    <div id="section-expreport" class="section">
+        <div class="page-header">
+            <h1>Expense Reports</h1>
+            <p>Generate, filter and export expense reports by period or category.</p>
+        </div>
+
+        <!-- â”€â”€ Filter Panel â”€â”€ -->
+        <div class="panel" style="margin-bottom:24px;">
+            <div class="panel-header"><h2><i class="fa-solid fa-sliders"></i> Report Filters</h2></div>
+
+            <!-- Quick period buttons -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+                <button id="rpt-q-today"   class="btn btn-outline btn-sm" onclick="setReportPeriod('today')">Today</button>
+                <button id="rpt-q-week"    class="btn btn-outline btn-sm" onclick="setReportPeriod('week')">This Week</button>
+                <button id="rpt-q-month"   class="btn btn-outline btn-sm" onclick="setReportPeriod('month')">This Month</button>
+                <button id="rpt-q-quarter" class="btn btn-outline btn-sm" onclick="setReportPeriod('quarter')">This Quarter</button>
+                <button id="rpt-q-year"    class="btn btn-outline btn-sm" onclick="setReportPeriod('year')">This Year</button>
+                <button id="rpt-q-custom"  class="btn btn-outline btn-sm" onclick="setReportPeriod('custom')">Custom Range</button>
+            </div>
+
+            <!-- Filter row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:14px;align-items:end;flex-wrap:wrap;">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <input type="date" id="rpt-from" class="form-control" onchange="markCustom()">
+                </div>
+                <div class="form-group">
+                    <label>To Date</label>
+                    <input type="date" id="rpt-to" class="form-control" onchange="markCustom()">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="rpt-category" class="form-control">
+                        <option value="">All Categories</option>
+                        <option value="inventory">ðŸ“¦ Inventory</option>
+                        <option value="utility">âš¡ Utilities</option>
+                        <option value="general_repairs">ðŸ”§ General Repairs</option>
+                        <option value="petty_cash">â˜• Petty Cash</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-primary" onclick="generateReport()" id="rpt-gen-btn">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- â”€â”€ Report Output (hidden until generated) â”€â”€ -->
+        <div id="rpt-output" style="display:none;">
+
+            <!-- Report header bar -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <h2 style="font-size:1.15rem;font-weight:800;color:var(--primary);" id="rpt-title-label">Expense Report</h2>
+                    <p style="font-size:0.85rem;color:var(--gray-600);" id="rpt-date-range-label"></p>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-outline" onclick="exportReportCSV()">
+                        <i class="fa-solid fa-file-csv"></i> Export CSV
+                    </button>
+                    <button class="btn btn-primary" onclick="printReport()">
+                        <i class="fa-solid fa-print"></i> Print Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary cards per category -->
+            <div class="metrics-grid" style="margin-bottom:24px;" id="rpt-summary-cards"></div>
+
+            <!-- Grand total bar -->
+            <div style="background:linear-gradient(135deg,var(--primary),#30080E);border-radius:14px;padding:20px 28px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;color:white;">
+                <div>
+                    <div style="font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.65);font-weight:700;">Grand Total</div>
+                    <div style="font-size:2.2rem;font-weight:800;color:var(--accent);" id="rpt-grand-total">KES 0.00</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.78rem;color:rgba(255,255,255,0.65);font-weight:700;">Total Records</div>
+                    <div style="font-size:2rem;font-weight:800;" id="rpt-grand-count">0</div>
+                </div>
+            </div>
+
+            <!-- Per-category breakdown panels -->
+            <div id="rpt-cat-panels"></div>
+
+            <!-- Full expenses table -->
+            <div class="panel" id="rpt-full-table-panel">
+                <div class="panel-header"><h2>All Expense Records</h2></div>
+                <div class="table-wrap">
+                    <table id="rpt-full-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Item / Name</th>
+                                <th>Description</th>
+                                <th>Reference</th>
+                                <th>Recorded By</th>
+                                <th style="text-align:right;">Amount (KES)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rpt-full-tbody"></tbody>
+                        <tfoot id="rpt-full-tfoot"></tfoot>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Empty state -->
+        <div id="rpt-empty-state" class="panel" style="text-align:center;padding:60px 20px;">
+            <i class="fa-solid fa-chart-pie" style="font-size:3.5rem;color:var(--gray-200);margin-bottom:18px;display:block;"></i>
+            <h3 style="color:var(--gray-500);font-weight:600;">No Report Generated Yet</h3>
+            <p style="color:var(--gray-500);margin-top:8px;font-size:0.9rem;">Choose a period and click <strong>Generate</strong> to view your expense report.</p>
+        </div>
+    </div>
+
+</main>

@@ -1,0 +1,12 @@
+﻿                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-500);font-size:0.82rem;"></i>
+                        <input type="text" id="exp-search" class="form-control" placeholder="Search expensesâ€¦" style="padding-left:30px;min-width:210px;" oninput="filterExpensesSearch()">
+                    </div>
+                    <select id="exp-filter-month" class="form-control" style="min-width:160px;padding:8px 12px;" onchange="loadExpenses()">
+                        <option value="">All Months</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="openExpenseModal()">
+                        <i class="fa-solid fa-plus"></i> Add Expense
+                    </button>
+                </div>

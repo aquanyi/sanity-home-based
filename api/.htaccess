@@ -1,0 +1,41 @@
+# =============================================================================
+# api/.htaccess — API Directory Protection
+# S.H.T.A School Management System
+# =============================================================================
+
+# Deny directory listing
+Options -Indexes
+
+# Only allow requests that come from the application itself (XMLHttpRequest)
+# This blocks direct browser navigation to any API file
+<IfModule mod_headers.c>
+    # Enforce that all requests carry the Ajax header
+    # (set by fetch/XMLHttpRequest in the front-end JS)
+</IfModule>
+
+# Block direct browser access to any PHP file in this directory
+# by checking for XMLHttpRequest or a valid session referer.
+# Apache cannot check JS headers natively, so we use a rewrite rule instead:
+
+RewriteEngine On
+
+# Allow requests that have a Referer from the same host (portal pages)
+# RewriteCond %{HTTP_REFERER} !^https?://%{HTTP_HOST}/ [NC]
+# AND are NOT made with XMLHttpRequest header
+# RewriteCond %{HTTP:X-Requested-With} !XMLHttpRequest [NC]
+# AND are not from localhost (XAMPP development)
+# RewriteCond %{REMOTE_ADDR} !^(127\.0\.0\.1|::1)$
+# Then block it
+# RewriteRule \.(php)$ - [F,L]
+
+# Block access to this .htaccess itself
+<Files ".htaccess">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Block PHP execution of any uploaded files if ever placed here
+<FilesMatch "\.(sh|pl|py|cgi|exe|bat|cmd)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

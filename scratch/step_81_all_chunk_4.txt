@@ -1,0 +1,79 @@
+﻿let expLastData = [];
+
+function renderExpensesRows(expenses) {
+    const cat        = currentExpenseCategory;
+    const tbody      = document.getElementById('expenses-tbody');
+    const totalRow   = document.getElementById('expenses-total-row');
+    const countEl    = document.getElementById('expenses-count');
+    const subtotalEl = document.getElementById('expenses-subtotal');
+    if (!tbody) return;
+    if (!expenses.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No results found.</td></tr>`;
+        if (totalRow) totalRow.style.display = 'none';
+        return;
+    }
+    let subtotal = 0;
+    tbody.innerHTML = expenses.map(e => {
+        const amt = parseFloat(e.amount); subtotal += amt;
+        return `<tr>
+            <td><strong>${e.expense_date}</strong></td>
+            <td><strong>${escHtml(e.item_name)}</strong></td>
+            <td style="max-width:200px;font-size:0.87rem;color:var(--gray-600);">${e.description ? escHtml(e.description) : '<em style="color:var(--gray-500);">â€”</em>'}</td>
+            <td style="font-size:0.85rem;">${e.reference ? escHtml(e.reference) : '<em style="color:var(--gray-500);">â€”</em>'}</td>
+            <td style="font-size:0.84rem;color:var(--gray-600);">${escHtml(e.recorded_by_name)}</td>
+            <td><strong style="color:var(--primary);">KES ${amt.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong></td>
+            <td><div class="btn-group">
+                <button class="btn btn-outline btn-sm" onclick="editExpense(${e.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button class="btn btn-sm" style="background:#FEE2E2;color:#DC2626;border:none;font-weight:700;" onclick="deleteExpense(${e.id}, '${escHtml(e.item_name).replace(/'/g,"&#39;")}')"><i class="fa-solid fa-trash"></i></button>
+            </div></td>
+        </tr>`;
+    }).join('');
+    if (countEl)    countEl.textContent = expenses.length;
+    if (subtotalEl) subtotalEl.textContent = subtotal.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+    if (totalRow)   totalRow.style.display = 'flex';
+}
+
+function filterExpensesSearch() {
+    const q = (document.getElementById('exp-search')?.value || '').toLowerCase().trim();
+    if (!q) { renderExpensesRows(expLastData); return; }
+    const filtered = expLastData.filter(e =>
+        (e.item_name   || '').toLowerCase().includes(q) ||
+        (e.description || '').toLowerCase().includes(q) ||
+        (e.reference   || '').toLowerCase().includes(q) ||
+        (e.expense_date|| '').toLowerCase().includes(q)
+    );
+    renderExpensesRows(filtered);
+}
+
+function loadExpenses() {
+    const cat   = currentExpenseCategory;
+    const month = document.getElementById('exp-filter-month')?.value || '';
+    const tbody = document.getElementById('expenses-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Loadingâ€¦</td></tr>';
+    // clear search on reload
+    const srch = document.getElementById('exp-search'); if (srch) srch.value = '';
+
+    fetch(`api_accounts.php?action=get_expenses&category=${cat}&month=${encodeURIComponent(month)}`)
+        .then(r => r.json())
+        .then(d => {
+            if (d.status !== 'success') { showAlert('error', d.message); return; }
+
+            // Update summary cards
+            ['inventory','utility','general_repairs','petty_cash'].forEach(c => {
+                const el = document.getElementById('exp-total-' + c);
+                if (el) el.textContent = 'KES ' + (d.totals[c] || 0).toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+            });
+
+            expLastData = d.expenses || [];
+
+            const totalRow  = document.getElementById('expenses-total-row');
+            const countEl   = document.getElementById('expenses-count');
+            const subtotalEl = document.getElementById('expenses-subtotal');
+
+            if (!tbody) return;
+
+            if (!expLastData.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No ${expCategoryMeta[cat].label} expenses recorded yet. Click "Add Expense" to start.</td></tr>`;
+                if (totalRow) totalRow.style.display = 'none';
+                return;
+            }

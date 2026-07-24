@@ -1,0 +1,4 @@
+﻿    if (id === 'payroll') loadPayrollTab();
+    if (id === 'expenses') initExpensesTab();
+    if (id === 'expreport') initReportTab();
+}

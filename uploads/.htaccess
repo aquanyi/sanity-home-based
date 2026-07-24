@@ -1,0 +1,25 @@
+# =============================================================================
+# uploads/.htaccess — Secure Directory Configuration
+# S.H.T.A School Management System
+# =============================================================================
+
+# Disable execution of scripts in this directory and its subdirectories
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|phps|pl|py|cgi|exe|bat|cmd)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Remove handlers for PHP execution (Apache / LiteSpeed cPanel support)
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
+
+# Explicitly disable PHP engine if supported
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>

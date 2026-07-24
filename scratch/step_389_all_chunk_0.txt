@@ -1,0 +1,3 @@
+﻿    <div class="nav-item" onclick="switchTab('invoices', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Invoices & Payments</div>
+    <div class="nav-item" onclick="switchTab('parent-invoice', this)"><i class="fa-solid fa-paper-plane"></i> Parent Invoice</div>
+    <div class="nav-item" onclick="switchTab('payroll', this)"><i class="fa-solid fa-hand-holding-dollar"></i> Teacher Payroll</div>

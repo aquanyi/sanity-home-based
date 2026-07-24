@@ -1,0 +1,307 @@
+﻿function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// EXPENSE REPORTS MODULE
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+let rptCurrentPeriod  = 'month';
+let rptLastData       = null;
+
+const rptCatMeta = {
+    inventory:       { label:'Inventory',      icon:'ðŸ“¦', color:'#3B82F6', bg:'rgba(59,130,246,0.08)' },
+    utility:         { label:'Utilities',       icon:'âš¡', color:'#10B981', bg:'rgba(16,185,129,0.08)' },
+    general_repairs: { label:'General Repairs', icon:'ðŸ”§', color:'#F59E0B', bg:'rgba(245,158,11,0.08)' },
+    petty_cash:      { label:'Petty Cash',      icon:'â˜•', color:'#8B5CF6', bg:'rgba(139,92,246,0.08)' },
+};
+
+function initReportTab() {
+    // Default to This Month
+    setReportPeriod('month');
+}
+
+function setReportPeriod(period) {
+    rptCurrentPeriod = period;
+    // Update button highlights
+    ['today','week','month','quarter','year','custom'].forEach(p => {
+        const btn = document.getElementById('rpt-q-' + p);
+        if (btn) btn.className = p === period ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+    });
+
+    const today = new Date();
+    const fmt   = d => d.toISOString().split('T')[0];
+    const fromEl = document.getElementById('rpt-from');
+    const toEl   = document.getElementById('rpt-to');
+
+    if (period === 'today') {
+        fromEl.value = fmt(today); toEl.value = fmt(today);
+    } else if (period === 'week') {
+        const mon = new Date(today);
+        mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+        const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+        fromEl.value = fmt(mon); toEl.value = fmt(sun);
+    } else if (period === 'month') {
+        fromEl.value = fmt(new Date(today.getFullYear(), today.getMonth(), 1));
+        toEl.value   = fmt(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+    } else if (period === 'quarter') {
+        const q = Math.floor(today.getMonth() / 3);
+        fromEl.value = fmt(new Date(today.getFullYear(), q * 3, 1));
+        toEl.value   = fmt(new Date(today.getFullYear(), q * 3 + 3, 0));
+    } else if (period === 'year') {
+        fromEl.value = today.getFullYear() + '-01-01';
+        toEl.value   = today.getFullYear() + '-12-31';
+    }
+    // 'custom' â€” leave dates as-is, user sets manually
+}
+
+function markCustom() {
+    setReportPeriod('custom');
+    rptCurrentPeriod = 'custom';
+    ['today','week','month','quarter','year'].forEach(p => {
+        const btn = document.getElementById('rpt-q-' + p);
+        if (btn) btn.className = 'btn btn-outline btn-sm';
+    });
+    const btn = document.getElementById('rpt-q-custom');
+    if (btn) btn.className = 'btn btn-primary btn-sm';
+}
+
+function generateReport() {
+    const from    = document.getElementById('rpt-from').value;
+    const to      = document.getElementById('rpt-to').value;
+    const cat     = document.getElementById('rpt-category').value;
+    const genBtn  = document.getElementById('rpt-gen-btn');
+
+    if (!from || !to) {
+        showAlert('error', 'Please select both From and To dates.');
+        return;
+    }
+    if (from > to) {
+        showAlert('error', 'From Date cannot be after To Date.');
+        return;
+    }
+
+    genBtn.disabled = true;
+    genBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generatingâ€¦';
+
+    const url = `api_accounts.php?action=expense_report&period=${rptCurrentPeriod}&from_date=${from}&to_date=${to}&category=${cat}`;
+    fetch(url)
+        .then(r => r.json())
+        .then(d => {
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Generate';
+            if (d.status !== 'success') { showAlert('error', d.message); return; }
+            rptLastData = d;
+            renderReport(d, from, to, cat);
+        })
+        .catch(() => {
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Generate';
+            showAlert('error', 'Network error generating report.');
+        });
+}
+
+function renderReport(d, from, to, cat) {
+    document.getElementById('rpt-empty-state').style.display = 'none';
+    document.getElementById('rpt-output').style.display      = 'block';
+
+    // Header label
+    const periodLabels = {
+        today: 'Today', week: 'This Week', month: 'This Month',
+        quarter: 'This Quarter', year: 'This Year', custom: 'Custom Range'
+    };
+    const catLabel = cat ? (rptCatMeta[cat]?.label || cat) : 'All Categories';
+    document.getElementById('rpt-title-label').textContent = `${catLabel} â€” Expense Report`;
+    document.getElementById('rpt-date-range-label').textContent =
+        `Period: ${from} to ${to}  |  ${d.count} record${d.count !== 1 ? 's' : ''} found`;
+
+    // Grand total
+    document.getElementById('rpt-grand-total').textContent =
+        'KES ' + d.grand_total.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('rpt-grand-count').textContent = d.count;
+
+    // Summary cards
+    const cats = cat ? [cat] : ['inventory','utility','general_repairs','petty_cash'];
+    const cardsEl = document.getElementById('rpt-summary-cards');
+    cardsEl.innerHTML = cats.map(c => {
+        const m   = rptCatMeta[c];
+        const tot = (d.cat_totals[c] || 0);
+        const cnt = (d.cat_counts[c] || 0);
+        const pct = d.grand_total > 0 ? ((tot / d.grand_total) * 100).toFixed(1) : '0.0';
+        return `
+        <div class="metric-card" style="border-left:4px solid ${m.color};flex-direction:column;align-items:flex-start;gap:10px;">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                <div class="metric-info">
+                    <h4 style="color:${m.color};">${m.icon} ${m.label}</h4>
+                    <p style="font-size:1.5rem;color:${m.color};">${tot.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
+                </div>
+                <div style="font-size:2rem;opacity:0.15;">${m.icon}</div>
+            </div>
+            <div style="width:100%;background:var(--gray-200);border-radius:6px;height:6px;">
+                <div style="width:${pct}%;background:${m.color};height:6px;border-radius:6px;transition:width 0.6s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;width:100%;font-size:0.8rem;color:var(--gray-600);">
+                <span>${cnt} item${cnt!==1?'s':''}</span>
+                <span style="font-weight:700;color:${m.color};">${pct}%</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Per-category expense tables
+    const catPanelsEl = document.getElementById('rpt-cat-panels');
+    if (!cat) {
+        catPanelsEl.innerHTML = ['inventory','utility','general_repairs','petty_cash'].map(c => {
+            const m    = rptCatMeta[c];
+            const rows = d.expenses.filter(e => e.category === c);
+            if (!rows.length) return '';
+            let subTotal = 0;
+            const trs = rows.map((e, i) => {
+                const amt = parseFloat(e.amount);
+                subTotal += amt;
+                return `<tr>
+                    <td style="color:var(--gray-600);font-size:0.82rem;">${i+1}</td>
+                    <td>${e.expense_date}</td>
+                    <td><strong>${escHtml(e.item_name)}</strong></td>
+                    <td style="max-width:180px;font-size:0.85rem;color:var(--gray-600);">${e.description ? escHtml(e.description) : 'â€”'}</td>
+                    <td style="font-size:0.83rem;">${e.reference ? escHtml(e.reference) : 'â€”'}</td>
+                    <td style="font-size:0.83rem;color:var(--gray-600);">${escHtml(e.recorded_by_name)}</td>
+                    <td style="text-align:right;"><strong>KES ${amt.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+                </tr>`;
+            }).join('');
+            return `
+            <div class="panel" style="margin-bottom:20px;border-top:4px solid ${m.color};">
+                <div class="panel-header">
+                    <h2 style="color:${m.color};">${m.icon} ${m.label}</h2>
+                    <span style="font-weight:800;color:${m.color};font-size:1.05rem;">KES ${subTotal.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th>Date</th><th>Item</th><th>Description</th><th>Reference</th><th>Recorded By</th><th style="text-align:right;">Amount</th></tr>
+                        </thead>
+                        <tbody>${trs}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }).join('');
+    } else {
+        catPanelsEl.innerHTML = '';
+    }
+
+    // Full expenses table (always shown)
+    let grand = 0;
+    const allRows = d.expenses.map((e, i) => {
+        const amt = parseFloat(e.amount);
+        grand += amt;
+        const m = rptCatMeta[e.category];
+        return `<tr>
+            <td style="color:var(--gray-600);">${i+1}</td>
+            <td>${e.expense_date}</td>
+            <td><span style="background:${m?.bg||'#eee'};color:${m?.color||'#333'};padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">${m?.icon||''} ${m?.label||e.category}</span></td>
+            <td><strong>${escHtml(e.item_name)}</strong></td>
+            <td style="max-width:180px;font-size:0.85rem;color:var(--gray-600);">${e.description ? escHtml(e.description) : 'â€”'}</td>
+            <td style="font-size:0.83rem;">${e.reference ? escHtml(e.reference) : 'â€”'}</td>
+            <td style="font-size:0.83rem;color:var(--gray-600);">${escHtml(e.recorded_by_name)}</td>
+            <td style="text-align:right;"><strong>KES ${amt.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('rpt-full-tbody').innerHTML = allRows ||
+        '<tr><td colspan="8" class="empty-row">No records found for this period / filter.</td></tr>';
+    document.getElementById('rpt-full-tfoot').innerHTML = `
+        <tr style="background:var(--cream);">
+            <td colspan="7" style="text-align:right;font-weight:800;color:var(--primary);padding:14px 16px;">
+                GRAND TOTAL (${d.count} records)
+            </td>
+            <td style="text-align:right;font-weight:800;font-size:1.05rem;color:var(--primary);padding:14px 16px;">
+                KES ${grand.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}
+            </td>
+        </tr>`;
+}
+
+function exportReportCSV() {
+    if (!rptLastData || !rptLastData.expenses.length) {
+        showAlert('error', 'No report data to export. Generate a report first.');
+        return;
+    }
+    const from = document.getElementById('rpt-from').value;
+    const to   = document.getElementById('rpt-to').value;
+    const rows = [['#','Date','Category','Item','Description','Reference','Recorded By','Amount (KES)']];
+    rptLastData.expenses.forEach((e, i) => {
+        rows.push([
+            i+1,
+            e.expense_date,
+            rptCatMeta[e.category]?.label || e.category,
+            e.item_name,
+            e.description || '',
+            e.reference   || '',
+            e.recorded_by_name,
+            parseFloat(e.amount).toFixed(2)
+        ]);
+    });
+    // Totals row
+    rows.push([]);
+    rows.push(['','','','','','','GRAND TOTAL', rptLastData.grand_total.toFixed(2)]);
+
+    const csv  = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `expense_report_${from}_to_${to}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function printReport() {
+    if (!rptLastData) { showAlert('error', 'Generate a report first.'); return; }
+    const from    = document.getElementById('rpt-from').value;
+    const to      = document.getElementById('rpt-to').value;
+    const content = document.getElementById('rpt-output').innerHTML;
+    const win = window.open('', '_blank', 'width=1100,height=850');
+    win.document.write(`
+        <!DOCTYPE html><html>
+        <head>
+            <title>Expense Report â€” ${from} to ${to}</title>
+            <style>
+                body{font-family:'Segoe UI',sans-serif;padding:30px;color:#1e293b;font-size:13px;}
+                table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+                th,td{padding:8px 10px;border:1px solid #e2e8f0;text-align:left;}
+                th{background:#f8fafc;font-weight:700;font-size:11px;text-transform:uppercase;}
+                h1,h2{color:#4A0E17;} .panel{border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px;}
+                .panel-header{display:flex;justify-content:space-between;margin-bottom:12px;}
+                .metric-card,.metrics-grid{display:none;}
+                button,.btn{display:none;}
+                tfoot tr{background:#FAF7F2;}
+                @media print{body{padding:15px;} button{display:none!important;}}
+            </style>
+        </head>
+        <body>
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #E5A93B;padding-bottom:12px;margin-bottom:20px;">
+                <div>
+                    <h1 style="margin:0;font-size:1.4rem;">SANITY HOMEBASED TUITION ACADEMY</h1>
+                    <p style="margin:4px 0;color:#6C757D;font-size:12px;">Expense Report â€” Generated: ${new Date().toLocaleString()}</p>
+                </div>
+                <div style="text-align:right;">
+                    <strong>Period:</strong> ${from} to ${to}<br>
+                    <strong>Records:</strong> ${rptLastData.count}
+                </div>
+            </div>
+            ${content}
+            <script>window.onload=()=>window.print();<\/script>
+        </body></html>
+    `);
+    win.document.close();
+}
+
+// Init
+window.onload = () => {
+    loadSessions();
+    const savedTab = localStorage.getItem('accounts_dashboard_active_tab');
+    if (savedTab) {
+        switchTab(savedTab);
+    }
+};
+</script>
+</body>
+</html>

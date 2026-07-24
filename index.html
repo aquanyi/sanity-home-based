@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanity Homebased Tuition Academy</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4A0E17;
+            --accent: #E5A93B;
+            --accent-hover: #c98f28;
+            --dark: #121214;
+            --white: #FFFFFF;
+            --cream: #FAF7F2;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-600: #6C757D;
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --grad-accent: linear-gradient(135deg, #F4D068 0%, #D8B03A 50%, #B48D1B 100%);
+            --transition-smooth: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--white);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-y: auto;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        /* --- Header Navigation --- */
+        header {
+            background-color: var(--white);
+            padding: 15px 5%;
+            position: -webkit-sticky; /* iOS Safari Support */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-container { display: flex; align-items: center; gap: 12px; }
+        .logo-text-wrapper { display: flex; flex-direction: column; }
+        .logo-title { font-weight: 800; font-size: 1.25rem; color: var(--dark); text-decoration: none; line-height: 1.2; }
+        .logo-subtitle { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
+        nav { display: flex; gap: 30px; align-items: center; }
+        nav a { text-decoration: none; color: var(--gray-600); font-weight: 600; font-size: 0.95rem; transition: var(--transition-smooth); }
+        nav a:hover { color: var(--primary); }
+        .btn-portal { border: 1px solid rgba(74,14,23,0.15); color: var(--primary); padding: 10px 20px; border-radius: 6px; font-weight: 700; text-decoration: none; transition: var(--transition-smooth); }
+        .btn-portal:hover { background-color: rgba(74,14,23,0.05); }
+        .btn-enroll { background-color: var(--accent); color: var(--white); padding: 10px 22px; border-radius: 6px; font-weight: 700; text-decoration: none; transition: var(--transition-smooth); }
+        .btn-enroll:hover { background-color: var(--accent-hover); }
+
+        /* --- Hero Section --- */
+        .hero {
+            background-image: linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1500');
+            background-size: cover; background-position: center;
+            color: var(--white); padding: 80px 5%; min-height: 70vh;
+            display: flex; align-items: center; position: relative;
+        }
+        .hero-container { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 40px; }
+        .hero-left { width: 50%; }
+        .hero-title-main { font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+        .hero-title-main span { color: var(--accent); }
+        .hero-description-main { font-size: 1.25rem; margin-bottom: 40px; opacity: 0.95; max-width: 520px; line-height: 1.5; }
+        .hero-actions-main { display: flex; gap: 20px; align-items: center; margin-bottom: 40px; }
+        .btn-hero-enroll { background-color: var(--accent); color: var(--dark); padding: 16px 32px; border-radius: 8px; font-weight: 800; text-decoration: none; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 10px; }
+        .btn-hero-enroll:hover { background-color: var(--accent-hover); transform: translateY(-2px); }
+        .btn-hero-meeting { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 16px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: var(--transition-smooth); display: inline-flex; align-items: center; gap: 10px; backdrop-filter: blur(5px); }
+        .btn-hero-meeting:hover { background: rgba(255,255,255,0.2); border-color: var(--white); }
+        .btn-hero-portal { color: var(--white); text-decoration: none; font-weight: 700; transition: var(--transition-smooth); }
+        .btn-hero-portal:hover { color: var(--accent); }
+        .hero-badges-row { display: flex; gap: 30px; font-size: 0.95rem; }
+        .hero-badge-item { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.9); }
+        .hero-badge-item i { color: var(--accent); }
+        .hero-right { width: 45%; display: flex; justify-content: flex-end; }
+        @keyframes floatImage { 0%{transform:translateY(0px) rotate(0deg);} 50%{transform:translateY(-15px) rotate(1.5deg);} 100%{transform:translateY(0px) rotate(0deg);} }
+        .hero-right-img { width:100%; max-width:420px; height:auto; border-radius:16px; border:4px solid var(--white); box-shadow:0 20px 40px rgba(0,0,0,0.3),0 0 40px rgba(229,169,59,0.15); animation:floatImage 6s ease-in-out infinite; transition:var(--transition-smooth); }
+        .hero-right-img:hover { box-shadow:0 30px 60px rgba(0,0,0,0.4),0 0 60px rgba(229,169,59,0.4); }
+
+        /* --- Section Titles --- */
+        .section-header { text-align:center; max-width:700px; margin:0 auto 50px; padding-top:60px; }
+        .section-subtitle { color:var(--accent); text-transform:uppercase; letter-spacing:2px; font-weight:700; font-size:0.85rem; margin-bottom:10px; display:block; }
+        .section-title { font-size:2.8rem; color:var(--primary); font-weight:800; line-height:1.2; }
+
+        /* --- Services Section --- */
+        .services-section { padding:100px 5%; background-color:var(--white); }
+        .services-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:30px; }
+        .service-card { background:var(--cream); padding:40px 30px; border-radius:16px; text-align:center; border:1px solid rgba(128,0,32,0.05); transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); position:relative; overflow:hidden; z-index:1; }
+        .service-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:4px; background:linear-gradient(90deg,var(--accent) 0%,var(--primary) 100%); transform:scaleX(0); transform-origin:left; transition:transform 0.4s ease; z-index:2; }
+        .service-card:hover::before { transform:scaleX(1); }
+        .service-card:hover { transform:translateY(-10px) scale(1.02); box-shadow:0 20px 40px rgba(74,14,23,0.08),0 0 0 1px rgba(229,169,59,0.2); background:var(--white); }
+        .service-icon { font-size:2.8rem; color:var(--primary); margin-bottom:20px; transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275),color 0.3s ease; display:inline-block; }
+        .service-card:hover .service-icon { transform:scale(1.2) rotate(10deg); color:var(--accent); }
+        .service-title { font-size:1.3rem; font-weight:800; margin-bottom:15px; color:var(--primary); transition:color 0.3s ease; }
+        .service-card:hover .service-title { color:#2a080d; }
+        .service-text { color:var(--gray-600); font-size:0.95rem; margin-bottom:20px; }
+        .service-link { color:var(--accent); text-decoration:none; font-weight:700; font-size:0.95rem; display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.3s ease; }
+        .service-link:hover { color:var(--accent-hover); letter-spacing:0.5px; }
+        .service-link i { transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275); }
+        .service-card:hover .service-link i { transform:translateX(4px); }
+        .service-card.expanded .service-link i { transform:rotate(90deg) !important; }
+        .service-extra-content { max-height:0; overflow:hidden; opacity:0; transition:all 0.5s cubic-bezier(0.16,1,0.3,1); text-align:left; margin-top:0; font-size:0.9rem; color:var(--gray-600); }
+        .service-extra-content ul { list-style:none; padding-left:0; margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:15px; }
+        .service-extra-content ul li { margin-bottom:8px; display:flex; align-items:center; gap:8px; opacity:0; transform:translateY(10px); transition:opacity 0.4s ease,transform 0.4s ease; }
+        .service-card.expanded .service-extra-content ul li { opacity:1; transform:translateY(0); }
+        .service-card.expanded .service-extra-content ul li:nth-child(1){transition-delay:0.1s;}
+        .service-card.expanded .service-extra-content ul li:nth-child(2){transition-delay:0.15s;}
+        .service-card.expanded .service-extra-content ul li:nth-child(3){transition-delay:0.2s;}
+        .service-card.expanded .service-extra-content ul li:nth-child(4){transition-delay:0.25s;}
+        .service-extra-content ul li i { color:var(--accent); font-size:0.8rem; }
+        .service-card.expanded .service-extra-content { max-height:300px; opacity:1; margin-top:15px; }
+
+        /* --- Why Choose Us --- */
+        .features-section { padding:100px 5%; background-color:var(--white); border-top:1px solid var(--gray-200); }
+        .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:50px; }
+        .feature-item { display:flex; gap:20px; }
+        .feature-icon { width:70px; height:70px; background-color:var(--cream); color:var(--accent); border-radius:16px; display:flex; justify-content:center; align-items:center; font-size:1.8rem; flex-shrink:0; transition:transform 0.3s ease; border:1px solid rgba(229,169,59,0.2); }
+        .feature-item:hover .feature-icon { transform:scale(1.1) rotate(5deg); }
+        .feature-content h3 { font-size:1.25rem; margin-bottom:10px; color:var(--primary); font-weight:700; }
+        .feature-content p { color:var(--gray-600); font-size:0.95rem; }
+
+        /* --- FAQ Section --- */
+        .faq-section { padding:100px 5%; background-color:var(--white); }
+        .faq-container { max-width:800px; margin:0 auto; }
+        .faq-item { border-bottom:1px solid var(--gray-200); padding:25px 0; cursor:pointer; }
+        .faq-question { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:1.15rem; color:var(--dark); }
+        .faq-question i { color:var(--primary); transition:transform 0.3s ease; }
+        .faq-answer { max-height:0; overflow:hidden; transition:all 0.4s ease; color:var(--gray-600); font-size:1rem; line-height:1.6; }
+        .faq-item.active .faq-answer { max-height:300px; margin-top:15px; }
+        .faq-item.active .faq-question i { transform:rotate(180deg); }
+
+        /* --- Tutors Section --- */
+        .tutors-section { padding:100px 5%; background-color:var(--cream); }
+        .tutors-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:35px; }
+        .tutor-card { background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.02); border-top:5px solid var(--primary); transition:var(--transition-smooth); }
+        .tutor-card:hover { transform:translateY(-8px); }
+        .tutor-header { padding:30px; display:flex; align-items:center; gap:20px; }
+        .tutor-avatar { width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid var(--cream); }
+        .tutor-meta h3 { font-size:1.2rem; font-weight:700; color:var(--dark); }
+        .tutor-meta span { color:var(--gray-600); font-size:0.85rem; }
+        .tutor-body { padding:0 30px 30px; }
+        .tutor-desc { color:var(--gray-600); font-size:0.95rem; margin-bottom:20px; }
+        .tutor-stats { display:flex; justify-content:space-between; border-top:1px solid var(--gray-200); padding-top:20px; font-size:0.85rem; color:var(--gray-600); }
+
+        /* --- About Section --- */
+        .about-section { padding:100px 5%; display:flex; align-items:center; gap:80px; background-color:var(--white); }
+        .about-content { width:50%; }
+        .about-image-wrapper { width:50%; }
+        .about-image { width:100%; border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.1); }
+        .about-stats { display:flex; gap:30px; margin-top:40px; }
+        .stat-item { flex:1; text-align:center; padding:20px; background:var(--cream); border-radius:12px; border-bottom:4px solid var(--accent); }
+        .stat-number { font-size:2.2rem; font-weight:800; color:var(--primary); display:block; }
+        .stat-label { font-size:0.85rem; color:var(--gray-600); font-weight:600; text-transform:uppercase; }
+
+        /* --- Curriculum Section --- */
+        .curriculum-section { padding:100px 5%; background-color:#faf8f5; text-align:center; }
+        .curriculum-intro { font-size:1.5rem; color:#4a5568; max-width:800px; margin:0 auto 60px; line-height:1.6; font-weight:500; }
+        .curriculum-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:30px; max-width:1200px; margin:0 auto; }
+        .curr-card { background:var(--white); border-radius:16px; padding:40px 30px; text-align:left; position:relative; box-shadow:0 4px 20px rgba(0,0,0,0.03); transition:transform 0.4s ease,box-shadow 0.4s ease,background-color 0.4s ease; overflow:hidden; display:flex; flex-direction:column; }
+        .curr-card:hover { transform:translateY(-10px); box-shadow:0 15px 40px rgba(0,0,0,0.08); }
+        .curr-card.cambridge{border-top:5px solid #4a90e2;} .curr-card.north-american{border-top:5px solid #9b51e0;} .curr-card.kenyan{border-top:5px solid #2ecc71;} .curr-card.edexcel{border-top:5px solid #f39c12;} .curr-card.ib{border-top:5px solid #1abc9c;} .curr-card.ace{border-top:5px solid #f1c40f;}
+        .curr-icon { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:25px; transition:transform 0.4s ease; }
+        .curr-card:hover .curr-icon { transform:scale(1.1) rotate(5deg); }
+        .curr-card.cambridge .curr-icon{background-color:#eef5fc;color:#4a90e2;} .curr-card.north-american .curr-icon{background-color:#f5eeff;color:#9b51e0;} .curr-card.kenyan .curr-icon{background-color:#eafaf1;color:#2ecc71;} .curr-card.edexcel .curr-icon{background-color:#fdf5e8;color:#f39c12;} .curr-card.ib .curr-icon{background-color:#e8f8f5;color:#1abc9c;} .curr-card.ace .curr-icon{background-color:#fef9e7;color:#f1c40f;}
+        .curr-card.ib:hover { background-color:#e8f8f5; }
+        .curr-card h3 { font-size:1.4rem; color:#2d3748; margin-bottom:10px; font-weight:700; }
+        .curr-subtitle { font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#718096; margin-bottom:20px; display:block; font-weight:600; padding-bottom:20px; border-bottom:1px solid #edf2f7; }
+        .curr-desc { color:#4a5568; font-size:0.95rem; line-height:1.6; margin-bottom:20px; flex-grow:1; }
+        .curr-list { list-style:none; margin-bottom:30px; }
+        .curr-list li { position:relative; padding-left:20px; margin-bottom:10px; font-size:0.9rem; color:#4a5568; }
+        .curr-list li::before { content:"\2022"; position:absolute; left:0; top:0; font-size:1.2rem; line-height:1; }
+        .curr-card.edexcel .curr-list li::before{color:#f39c12;} .curr-card.ib .curr-list li::before{color:#1abc9c;} .curr-card.ace .curr-list li::before{color:#f1c40f;}
+        .curr-link { text-decoration:none; font-weight:600; font-size:0.95rem; display:flex; align-items:center; gap:8px; transition:gap 0.3s ease; margin-top:auto; }
+        .curr-link:hover { gap:12px; }
+        .curr-card.edexcel .curr-link{color:#f39c12;} .curr-card.ib .curr-link{color:#1abc9c;} .curr-card.ace .curr-link{color:#f1c40f;}
+
+        /* --- Stages Section (All Levels of Studies) --- */
+        .stages-section { width:100%; margin-bottom:60px; }
+        .stages-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .stage-card {
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .stage-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.1); }
+        .stage-img-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            overflow: hidden;
+            background: var(--cream);
+        }
+        .stage-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+        .stage-card:hover .stage-img { transform: scale(1.05); }
+        .stage-badge-top {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: var(--primary);
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+        .stage-card-body { padding: 22px 20px; flex: 1; }
+        .stage-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; line-height: 1.3; }
+        .stage-desc { color: var(--gray-600); font-size: 0.88rem; line-height: 1.55; margin-bottom: 16px; }
+        .stage-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+        .stage-tag {
+            display: inline-block;
+            background: var(--cream);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(74,14,23,0.08);
+        }
+        /* Stages responsive - tablet */
+        @media (max-width: 900px) {
+            .stages-grid { grid-template-columns: 1fr; gap: 20px; max-width: 520px; }
+            .stage-img-wrapper { aspect-ratio: 16/9; }
+            .stage-card-body { padding: 20px 18px; }
+            .stage-title { font-size: 1.05rem; }
+        }
+        /* Stages responsive - mobile */
+        @media (max-width: 600px) {
+            .stages-grid { grid-template-columns: 1fr; gap: 18px; max-width: 100%; }
+            .stage-img-wrapper { aspect-ratio: 4/3; }
+            .stage-img { object-position: center center; }
+            .stage-card-body { padding: 18px 15px; }
+            .stage-title { font-size: 1rem; }
+            .stage-desc { font-size: 0.85rem; }
+            .curriculum-intro { font-size: 1.1rem; }
+        }
+
+
+
+        /* --- Testimonials --- */
+        .testimonials-section { padding:100px 5%; background-color:var(--cream); }
+        .testimonials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:30px; }
+        .testimonial-card { background:var(--white); padding:40px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.02); position:relative; }
+        .rating { color:var(--accent); margin-bottom:15px; }
+        .testimonial-text { color:var(--gray-600); font-size:0.95rem; margin-bottom:25px; }
+        .reviewer-info { display:flex; align-items:center; gap:15px; }
+        .reviewer-avatar { width:50px; height:50px; border-radius:50%; object-fit:cover; }
+        .reviewer-name { font-weight:700; font-size:1rem; color:var(--dark); }
+        .reviewer-role { font-size:0.8rem; color:var(--gray-600); }
+
+        /* --- Gallery Section --- */
+        .gallery-section { padding:100px 5%; background:var(--white); }
+        .gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+        .gallery-item { position:relative; border-radius:12px; overflow:hidden; height:250px; }
+        .gallery-img { width:100%; height:100%; object-fit:cover; transition:var(--transition-smooth); }
+        .gallery-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(128,0,32,0.8); display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0; transition:var(--transition-smooth); padding:20px; text-align:center; color:var(--white); }
+        .gallery-item:hover .gallery-img { transform:scale(1.1); }
+        .gallery-item:hover .gallery-overlay { opacity:1; }
+
+        /* --- Resources Section --- */
+        .resources-section { padding:100px 5%; background-color:var(--cream); }
+        .resources-container { display:flex; gap:40px; }
+        .resources-sidebar { width:25%; }
+        .resources-main { width:75%; display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:30px; }
+        .resource-category-list { list-style:none; background:var(--white); border-radius:8px; padding:15px 0; }
+        .resource-category-list li a { display:block; padding:12px 25px; color:var(--dark); text-decoration:none; font-weight:600; font-size:0.95rem; border-left:3px solid transparent; transition:var(--transition-smooth); }
+        .resource-category-list li a.active, .resource-category-list li a:hover { border-left-color:var(--accent); background:var(--cream); color:var(--primary); }
+        .blog-card { background:var(--white); border-radius:12px; overflow:hidden; }
+        .blog-img { width:100%; height:200px; object-fit:cover; }
+        .blog-content { padding:25px; }
+        .blog-meta { font-size:0.8rem; color:var(--gray-600); margin-bottom:10px; display:flex; gap:15px; }
+        .blog-title { font-size:1.15rem; font-weight:700; color:var(--primary); margin-bottom:15px; line-height:1.3; }
+
+        /* --- Newsletter CTA --- */
+        .newsletter-cta { background-color:var(--accent); color:var(--white); padding:80px 5%; text-align:center; }
+        .newsletter-cta h2 { font-size:3rem; margin-bottom:20px; }
+        .newsletter-form { display:flex; max-width:600px; margin:30px auto 0; background:var(--white); padding:6px; border-radius:8px; }
+        .newsletter-form input { flex:1; border:none; padding:15px 20px; font-size:1rem; outline:none; }
+        .newsletter-form button { background-color:var(--primary); color:var(--white); border:none; padding:0 30px; border-radius:6px; font-weight:700; cursor:pointer; }
+
+        /* --- Contact Form Section --- */
+        .contact-section { padding:100px 5%; background-color:var(--gray-100); }
+        .contact-header { text-align:center; margin-bottom:60px; }
+        .contact-header h2 { font-size:2.8rem; color:var(--primary); font-weight:800; margin-bottom:10px; }
+        .contact-header p { font-size:1.2rem; color:var(--gray-600); }
+        .contact-content { display:flex; gap:80px; align-items:flex-start; }
+        .contact-info { width:40%; }
+        .contact-form-wrapper { width:60%; }
+        .info-list { display:flex; flex-direction:column; gap:30px; }
+        .info-item-link { display:flex; align-items:center; gap:20px; text-decoration:none; color:inherit; transition:transform 0.3s ease; }
+        .info-item-link:hover { transform:translateX(5px); }
+        .info-icon { width:55px; height:55px; border-radius:12px; display:flex; justify-content:center; align-items:center; font-size:1.3rem; flex-shrink:0; }
+        .icon-call { background-color:#F8E5E5; color:#8C2C2C; }
+        .icon-email { background-color:#F8E5E5; color:#8C2C2C; }
+        .icon-whatsapp { background-color:#DCF8C6; color:#25D366; }
+        .icon-location { background-color:#FFF3D6; color:#D49D24; }
+        .info-text h4 { font-weight:700; font-size:1.05rem; margin-bottom:5px; color:var(--dark); }
+        .info-text p { color:var(--gray-600); font-size:0.95rem; }
+        .contact-form { background-color:var(--white); padding:50px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.03); }
+        .contact-form h3 { font-size:1.8rem; margin-bottom:30px; color:var(--dark); }
+        .form-row { display:flex; gap:20px; margin-bottom:20px; }
+        .form-group { flex:1; display:flex; flex-direction:column; gap:8px; }
+        .form-group label { font-weight:600; font-size:0.85rem; color:var(--primary); }
+        .form-group input, .form-group select, .form-group textarea { padding:12px 15px; border:1px solid var(--gray-200); border-radius:6px; background:var(--white); font-size:0.95rem; outline:none; width:100%; font-family:var(--font-main); }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--primary); }
+
+        /* --- Footer --- */
+        footer { background:linear-gradient(to right,#4a1515,#1a1a1a); color:#ffffff; padding:80px 5% 30px; }
+        .footer-grid { display:grid; grid-template-columns:2fr 1.5fr 1.5fr 1.5fr; gap:40px; margin-bottom:60px; }
+        .footer-brand { display:flex; align-items:center; gap:15px; margin-bottom:20px; }
+        .footer-brand img { width:60px; height:auto; border-radius:8px; background-color:white; padding:5px; }
+        .footer-brand-text h3 { font-size:1.4rem; margin:0; font-weight:700; color:#ffffff; }
+        .footer-brand-text span { color:#D4AF37; font-size:0.9rem; font-weight:500; }
+        .footer-col h4 { font-weight:700; font-size:1.1rem; margin-bottom:25px; color:#ffffff; }
+        .footer-col p { color:#cccccc; font-size:0.95rem; line-height:1.6; margin-bottom:20px; max-width:320px; }
+        .footer-links { list-style:none; display:flex; flex-direction:column; gap:15px; }
+        .footer-links a, .footer-contact-item { color:#cccccc; text-decoration:none; font-size:0.95rem; transition:color 0.3s ease; display:flex; align-items:center; gap:10px; }
+        .footer-links a:hover { color:#D4AF37; }
+        .footer-bottom { border-top:1px solid rgba(255,255,255,0.1); padding-top:30px; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; color:#aaaaaa; }
+        .footer-socials { display:flex; gap:20px; }
+        .footer-socials a { color:#aaaaaa; font-size:1.1rem; transition:color 0.3s ease; }
+        .footer-socials a:hover { color:#ffffff; }
+
+        /* --- Nav Toggle --- */
+        .nav-toggle { display:none; font-size:1.5rem; color:var(--primary); cursor:pointer; transition:color 0.3s ease; z-index:1001; }
+        .nav-toggle:hover { color:var(--accent); }
+
+        /* --- Responsive Styles --- */
+        @media (max-width: 1150px) {
+            header { padding:15px 5%; }
+            .nav-toggle { display:block; }
+            nav { position:fixed; top:0; right:-100%; width:280px; height:100vh; background-color:var(--white); box-shadow:-5px 0 20px rgba(0,0,0,0.05); flex-direction:column; justify-content:flex-start; align-items:flex-start; padding:100px 30px 40px; gap:20px; transition:right 0.4s cubic-bezier(0.16,1,0.3,1); z-index:1000; }
+            nav.mobile-active { right:0; }
+            nav a { width:100%; padding:10px 0; border-bottom:1px solid var(--gray-200); }
+            nav a.btn-portal, nav a.btn-enroll { text-align:center; border-radius:8px; margin-top:10px; }
+            .hero-container { flex-direction:column; text-align:center; }
+            .hero-left, .hero-right { width:100%; }
+            .hero-right { justify-content:center; margin-top:20px; }
+            .hero-actions-main { justify-content:center; flex-wrap:wrap; gap:15px; }
+            .hero-badges-row { justify-content:center; flex-direction:column; align-items:center; gap:15px; }
+            .hero-title-main { font-size:clamp(2.2rem,5vw,3.5rem); }
+            .section-title { font-size:clamp(1.8rem,4vw,2.5rem); }
+            .about-section { flex-direction:column; gap:50px; }
+            .about-content, .about-image-wrapper { width:100%; }
+            .contact-section { padding:60px 5%; }
+            .contact-content { flex-direction:column; gap:40px; }
+            .contact-info, .contact-form-wrapper { width:100%; }
+            .contact-form { padding:30px 20px; }
+            .contact-header h2 { font-size:2rem; }
+            .footer-grid { grid-template-columns:1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .resources-container { flex-direction:column; }
+            .resources-sidebar { width:100%; margin-bottom:25px; }
+            .resources-main { width:100%; }
+            .footer-grid { grid-template-columns:1fr; }
+            .form-row { flex-direction:column; gap:15px; }
+            .newsletter-form { flex-direction:column; gap:10px; background:transparent; padding:0; }
+            .newsletter-form input { border-radius:8px; border:1px solid var(--gray-200); }
+            .newsletter-form button { padding:15px; border-radius:8px; }
+            .about-stats { flex-direction:column; gap:20px; }
+            /* Hero buttons - stack nicely on mobile */
+            .hero { padding: 60px 5%; }
+            .hero-actions-main { flex-direction:column; align-items:center; gap:12px; width:100%; }
+            .btn-hero-enroll { width:100%; max-width:320px; justify-content:center; padding:15px 24px; }
+            .btn-hero-meeting { width:100%; max-width:320px; justify-content:center; padding:15px 24px; }
+            .btn-hero-portal {
+                display:block;
+                width:100%;
+                max-width:320px;
+                text-align:center;
+                padding:12px 24px;
+                border:1px solid rgba(255,255,255,0.4);
+                border-radius:8px;
+                background:rgba(255,255,255,0.08);
+            }
+            .hero-badges-row { flex-direction:column; align-items:center; gap:12px; margin-top:5px; }
+            .hero-title-main { font-size:2.2rem; }
+            .hero-description-main { font-size:1rem; margin-bottom:28px; }
+            /* Contact mobile fixes */
+            .contact-section { padding:50px 4%; }
+            .contact-content { flex-direction:column; gap:30px; }
+            .contact-info, .contact-form-wrapper { width:100%; }
+            .contact-header { margin-bottom:35px; }
+            .contact-header h2 { font-size:1.7rem; line-height:1.3; }
+            .contact-header p { font-size:1rem; }
+            .contact-form { padding:25px 16px; border-radius:12px; }
+            .contact-form h3 { font-size:1.4rem; margin-bottom:20px; }
+            .info-list { gap:20px; }
+            .info-icon { width:46px; height:46px; font-size:1.1rem; }
+            .info-text p { font-size:0.88rem; word-break:break-all; }
+            /* Newsletter */
+            .newsletter-cta h2 { font-size:1.8rem; }
+            /* Section padding */
+            .services-section, .features-section, .faq-section, .tutors-section,
+            .about-section, .curriculum-section, .testimonials-section,
+            .gallery-section, .resources-section { padding:60px 5%; }
+            .section-title { font-size:1.8rem; }
+            /* Footer */
+            footer { padding:50px 5% 25px; }
+            .footer-bottom { flex-direction:column; gap:15px; text-align:center; }
+        }
+
+        /* --- Extra small phones (max 480px) --- */
+        @media (max-width: 480px) {
+            .hero { padding:50px 5%; min-height:auto; }
+            .hero-title-main { font-size:1.9rem; line-height:1.15; }
+            .hero-description-main { font-size:0.95rem; margin-bottom:24px; }
+            .btn-hero-enroll, .btn-hero-meeting, .btn-hero-portal { font-size:0.9rem; padding:13px 20px; }
+            .hero-badge-item { font-size:0.85rem; }
+            /* Contact */
+            .contact-header h2 { font-size:1.5rem; }
+            .contact-form { padding:20px 12px; }
+            .form-group input, .form-group select, .form-group textarea { font-size:0.9rem; padding:10px 12px; }
+            /* Curriculum grid single column */
+            .curriculum-grid { grid-template-columns:1fr; }
+            .tutors-grid { grid-template-columns:1fr; }
+            .testimonials-grid { grid-template-columns:1fr; }
+        }
+
+        /* Modal responsiveness fix */
+        @media (max-width: 576px) {
+            .modal-content { padding: 25px 15px; width: 95%; }
+            .modal-header h3 { font-size: 1.5rem; }
+            #enrollmentModal .modal-header { padding: 30px 15px 20px !important; }
+            #enrollmentModal .modal-body { padding: 20px 15px !important; }
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:opacity 0.3s ease,visibility 0.3s ease; backdrop-filter:blur(4px); }
+        .modal-overlay.active { opacity:1; visibility:visible; }
+        .modal-content { background:var(--white); border-radius:16px; width:90%; max-width:600px; padding:40px; position:relative; transform:scale(0.9); transition:transform 0.3s ease; box-shadow:0 20px 40px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto; }
+        .modal-overlay.active .modal-content { transform:scale(1); }
+        .modal-close { position:absolute; top:20px; right:20px; background:none; border:none; font-size:1.5rem; color:#a0aec0; cursor:pointer; transition:color 0.3s ease; }
+        .modal-close:hover { color:var(--primary); }
+        .modal-header { text-align:center; margin-bottom:25px; padding-bottom:20px; border-bottom:1px solid #edf2f7; }
+        .modal-icon { font-size:2.5rem; margin-bottom:15px; }
+        .modal-header h3 { font-size:1.8rem; color:var(--dark); margin-bottom:5px; }
+        .modal-header p { color:var(--gray-600); font-size:1rem; }
+        .modal-body .form-group { margin-bottom:20px; }
+        .modal-body .form-group label { font-weight:600; font-size:0.85rem; color:var(--primary); display:block; margin-bottom:8px; }
+        .modal-body .form-group input, .modal-body .form-group select, .modal-body .form-group textarea { width:100%; padding:12px 15px; border:1px solid var(--gray-200); border-radius:6px; font-size:0.95rem; outline:none; font-family:var(--font-main); }
+        .modal-body .form-group input:focus, .modal-body .form-group select:focus, .modal-body .form-group textarea:focus { border-color:var(--primary); }
+        .modal-submit { width:100%; padding:15px; background:var(--accent); color:var(--white); border:none; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; transition:background 0.3s ease; font-family:var(--font-main); }
+        .modal-submit:hover { background:var(--accent-hover); }
+
+        /* --- Utility --- */
+        .hidden-tab { display: none !important; }
+        nav a.active { color: var(--primary) !important; font-weight: 700; }
+
+        /* Enrollment modal */
+        #enrollmentModal .modal-content { max-width: 700px; padding: 0; }
+        #enrollmentModal .modal-header { padding: 40px 40px 25px; border-bottom: 1px solid #edf2f7; }
+        #enrollmentModal .modal-body { padding: 30px 40px 40px; }
+
+        /* Curriculum card link colors */
+        .curr-card.cambridge .curr-link { color: #4a90e2; }
+        .curr-card.north-american .curr-link { color: #9b51e0; }
+        .curr-card.kenyan .curr-link { color: #2ecc71; }
+
+        /* Tag badge */
+        .curr-badge {
+            display: inline-block;
+            background: var(--cream);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(74, 14, 23, 0.05);
+        }
+    </style>
+    
+    <!-- Tab Switching & Interactive JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabGroups = {
+                '#home': ['.hero', '.features-section', '#tutors', '.testimonials-section', '.gallery-section', '.faq-section', '.newsletter-cta'],
+                '#services': ['#services'],
+                '#curriculum': ['#curriculum'],
+                '#about': ['#about', '#tutors'],
+                '#resources': ['#resources'],
+                '#contact': ['#contact']
+            };
+
+            const allSectionsSelectors = new Set();
+            Object.values(tabGroups).forEach(group => {
+                group.forEach(sel => allSectionsSelectors.add(sel));
+            });
+
+            function switchTab() {
+                let hash = window.location.hash || '#home';
+                if (!tabGroups[hash]) { hash = '#home'; }
+                allSectionsSelectors.forEach(sel => {
+                    document.querySelectorAll(sel).forEach(el => el.classList.add('hidden-tab'));
+                });
+                (tabGroups[hash] || []).forEach(sel => {
+                    document.querySelectorAll(sel).forEach(el => el.classList.remove('hidden-tab'));
+                });
+                document.querySelectorAll('header nav a').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === hash || (hash === '#home' && (href === '#' || href === '#home'))) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            window.addEventListener('hashchange', switchTab);
+
+            const logoContainer = document.querySelector('.logo-container');
+            if (logoContainer) {
+                logoContainer.style.cursor = 'pointer';
+                logoContainer.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.hash = '#home';
+                });
+            }
+
+            // Mobile Nav Toggle
+            const navToggle = document.getElementById('navToggle');
+            const navMenu = document.getElementById('navMenu');
+            if (navToggle && navMenu) {
+                navToggle.addEventListener('click', () => {
+                    navMenu.classList.toggle('mobile-active');
+                    const icon = navToggle.querySelector('i');
+                    if (navMenu.classList.contains('mobile-active')) {
+                        icon.className = 'fa-solid fa-xmark';
+                    } else {
+                        icon.className = 'fa-solid fa-bars';
+                    }
+                });
+                navMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navMenu.classList.remove('mobile-active');
+                        navToggle.querySelector('i').className = 'fa-solid fa-bars';
+                    });
+                });
+                document.addEventListener('click', (e) => {
+                    if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+                        navMenu.classList.remove('mobile-active');
+                        navToggle.querySelector('i').className = 'fa-solid fa-bars';
+                    }
+                });
+            }
+
+            // FAQ toggle
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    item.classList.toggle('active');
+                });
+            });
+
+            // Service card expand
+            document.querySelectorAll('.service-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const card = link.closest('.service-card');
+                    if (card) card.classList.toggle('expanded');
+                });
+            });
+
+            switchTab();
+        });
+    </script>
+</head>
+
+<body>
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo-container">
+            <img src="logo.png" alt="S.H.T.A Logo" style="height: 70px; width: auto; object-fit: contain;">
+            <div class="logo-text-wrapper">
+                <a href="#home" class="logo-title">Sanity Homebased</a>
+                <span class="logo-subtitle">Tuition Academy</span>
+            </div>
+        </div>
+        <div class="nav-toggle" id="navToggle">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <nav id="navMenu">
+            <a href="#home">Home</a>
+            <a href="#services">Services</a>
+            <a href="#curriculum">Curriculum</a>
+            <a href="#about">About</a>
+            <a href="#resources">Resources</a>
+            <a href="#contact">Contact</a>
+            <a href="portal" class="btn-portal">Portal</a>
+            <a href="javascript:void(0)" onclick="openEnrollmentModal(); closeMobileMenu();" class="btn-enroll">Enroll Now</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-left">
+                <h1 class="hero-title-main">A Leading<br><span>Tutoring Group</span></h1>
+                <p class="hero-description-main">Instructing at the learner's best learning ability, converting ordinary learners into academic champions</p>
+                
+                <div class="hero-actions-main">
+                    <a href="javascript:void(0)" onclick="openEnrollmentModal()" class="btn-hero-enroll"><i class="fa-solid fa-graduation-cap"></i> Enroll Now</a>
+                    <a href="#contact" class="btn-hero-meeting"><i class="fa-regular fa-calendar"></i> Schedule Meeting</a>
+                    <a href="portal" class="btn-hero-portal">Portal Login</a>
+                </div>
+
+                <div class="hero-badges-row">
+                    <div class="hero-badge-item">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>Local & International Students</span>
+                    </div>
+                    <div class="hero-badge-item">
+                        <i class="fa-solid fa-book"></i>
+                        <span>Multiple Curricula</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-right">
+                <img src="hero_student.png" alt="Student Smiling with Glasses" class="hero-right-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services-section">
+        <div class="section-header">
+            <span class="section-subtitle">What We Offer</span>
+            <h2 class="section-title">Our Premium Tutoring Services</h2>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <i class="fa-solid fa-calculator service-icon"></i>
+                <h3 class="service-title">Mathematics</h3>
+                <p class="service-text">From fundamental arithmetic to advanced calculus, our tutors simplify complex mathematical concepts.</p>
+                <div class="service-extra-content">
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Algebra I & II</li>
+                        <li><i class="fa-solid fa-check"></i> Geometry & Trigonometry</li>
+                        <li><i class="fa-solid fa-check"></i> Pre-Calculus & Calculus</li>
+                        <li><i class="fa-solid fa-check"></i> Statistics & Probability</li>
+                    </ul>
+                </div>
+                <a class="service-link" onclick="toggleCard(this)">Explore Curriculum <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <i class="fa-solid fa-flask-vial service-icon"></i>
+                <h3 class="service-title">Sciences</h3>
+                <p class="service-text">Interactive coaching in Biology, Chemistry, Physics, and environmental sciences.</p>
+                <div class="service-extra-content">
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> General Science</li>
+                        <li><i class="fa-solid fa-check"></i> Biology & Human Anatomy</li>
+                        <li><i class="fa-solid fa-check"></i> Chemistry (Organic/Inorganic)</li>
+                        <li><i class="fa-solid fa-check"></i> Physics & Mechanics</li>
+                    </ul>
+                </div>
+                <a class="service-link" onclick="toggleCard(this)">Explore Curriculum <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <i class="fa-solid fa-book-open service-icon"></i>
+                <h3 class="service-title">English & Literature</h3>
+                <p class="service-text">Enhance reading comprehension, writing mechanics, and literary criticism skills.</p>
+                <div class="service-extra-content">
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Reading Comprehension</li>
+                        <li><i class="fa-solid fa-check"></i> Creative & Essay Writing</li>
+                        <li><i class="fa-solid fa-check"></i> Literary Analysis</li>
+                        <li><i class="fa-solid fa-check"></i> Grammar & Vocabulary</li>
+                    </ul>
+                </div>
+                <a class="service-link" onclick="toggleCard(this)">Explore Curriculum <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <i class="fa-solid fa-graduation-cap service-icon"></i>
+                <h3 class="service-title">Test Preparation</h3>
+                <p class="service-text">Proven test-taking strategies and content reviews for SAT, ACT, and AP exams.</p>
+                <div class="service-extra-content">
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> SAT / ACT Prep</li>
+                        <li><i class="fa-solid fa-check"></i> AP & IB Exams</li>
+                        <li><i class="fa-solid fa-check"></i> IGCSE & A-Levels</li>
+                        <li><i class="fa-solid fa-check"></i> College Admissions Essays</li>
+                    </ul>
+                </div>
+                <a class="service-link" onclick="toggleCard(this)">Explore Curriculum <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us / Features -->
+    <section class="features-section">
+        <div class="section-header">
+            <span class="section-subtitle">Why Choose S.H.T.A?</span>
+            <h2 class="section-title">An Education Built Around Your Child</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fa-solid fa-bullseye"></i></div>
+                <div class="feature-content">
+                    <h3>Personalized Learning Plans</h3>
+                    <p>We don't use a one-size-fits-all approach. Every student gets a custom curriculum map designed to target their specific academic gaps and accelerate their strengths.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fa-solid fa-house-laptop"></i></div>
+                <div class="feature-content">
+                    <h3>Flexible Homebased Sessions</h3>
+                    <p>Learning happens where the student is most comfortable. We offer in-home tutoring across Nairobi and fully interactive online sessions for international students.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                <div class="feature-content">
+                    <h3>Elite Vetted Educators</h3>
+                    <p>Our tutors aren't just intelligent; they are proven educators. Every tutor undergoes rigorous background checks, subject testing, and pedagogical training.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="feature-content">
+                    <h3>Transparent Progress Tracking</h3>
+                    <p>Parents receive detailed bi-weekly reports covering concepts mastered, areas requiring focus, and upcoming milestones, keeping you entirely in the loop.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tutors Section -->
+    <section id="tutors" class="tutors-section">
+        <div class="section-header">
+            <span class="section-subtitle">Meet Our Mentors</span>
+            <h2 class="section-title">Our Outstanding Educators</h2>
+        </div>
+        <div class="tutors-grid">
+            <div class="tutor-card">
+                <div class="tutor-header">
+                    <img src="tutor_1.png" alt="Zahra Mwangi" class="tutor-avatar">
+                    <div class="tutor-meta">
+                        <h3>Zahra Mwangi</h3>
+                        <span>Math Specialist</span>
+                    </div>
+                </div>
+                <div class="tutor-body">
+                    <p class="tutor-desc">Dedicated mathematics teacher with 8+ years of experience simplifying algebraic concepts and preparing students for IGCSE exams.</p>
+                    <div class="tutor-stats">
+                        <span>Success Rate: <strong>98%</strong></span>
+                        <span>Experience: <strong>8 Years</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tutor-card">
+                <div class="tutor-header">
+                    <img src="tutor_2.png" alt="Kofi Osei" class="tutor-avatar">
+                    <div class="tutor-meta">
+                        <h3>Kofi Osei</h3>
+                        <span>Science Lead</span>
+                    </div>
+                </div>
+                <div class="tutor-body">
+                    <p class="tutor-desc">Physics and Chemistry instructor. Expert at using practical experiments to ground theoretical scientific methods.</p>
+                    <div class="tutor-stats">
+                        <span>Success Rate: <strong>95%</strong></span>
+                        <span>Experience: <strong>6 Years</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tutor-card">
+                <div class="tutor-header">
+                    <img src="tutor_3.png" alt="Amina Diallo" class="tutor-avatar">
+                    <div class="tutor-meta">
+                        <h3>Amina Diallo</h3>
+                        <span>Literature Expert</span>
+                    </div>
+                </div>
+                <div class="tutor-body">
+                    <p class="tutor-desc">Experienced languages and literature educator specializing in essays, creative writing, and AP English prep courses.</p>
+                    <div class="tutor-stats">
+                        <span>Success Rate: <strong>99%</strong></span>
+                        <span>Experience: <strong>10 Years</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- About Section / Philosophy -->
+    <section id="about" class="about-section">
+        <div class="about-content">
+            <span class="section-subtitle">Our Philosophy</span>
+            <h2 class="section-title" style="margin-bottom: 25px;">Innovative Teaching Methodologies Designed for Success</h2>
+            <p style="color: var(--gray-600); margin-bottom: 20px;">We believe every student possesses unique learning capabilities. Our individualized strategy connects highly qualified tutors with responsive, student-centered learning methodologies to achieve consistent academic results.</p>
+            <p style="color: var(--gray-600);">By monitoring baseline performances and introducing modern digital resource toolkits, we transform challenges into visible progress markers.</p>
+            <div class="about-stats">
+                <div class="stat-item">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Students Guided</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">97%</span>
+                    <span class="stat-label">Parent Satisfaction</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">15+</span>
+                    <span class="stat-label">Key Subjects</span>
+                </div>
+            </div>
+        </div>
+        <div class="about-image-wrapper">
+            <img src="students_studying.png" alt="Student Studying" class="about-image">
+        </div>
+    </section>
+
+    <!-- Curriculum Section -->
+    <section id="curriculum" class="curriculum-section">
+        <p class="curriculum-intro">Our physical classes at the centre, home-based private tuition, and interactive online classes serve both local and international students with world-class curricula and personalized attention</p>
+        
+        <!-- Levels of Studies (Year 1 to 12) Section -->
+        <div class="stages-section">
+            <div class="section-header" style="margin-bottom: 40px; padding-top: 0;">
+                <span class="section-subtitle">Academic Stage Roadmap</span>
+                <h2 class="section-title" style="font-size: 2.2rem;">All Levels of Studies (Year 1 to 12)</h2>
+            </div>
+            
+            <div class="stages-grid">
+                <!-- Stage 1: Primary -->
+                <div class="stage-card">
+                    <div class="stage-img-wrapper">
+                        <img src="african_students_primary.png" alt="Primary School Journey" class="stage-img">
+                        <span class="stage-badge-top">Primary Stage</span>
+                    </div>
+                    <div class="stage-card-body">
+                        <h3 class="stage-title">Primary School (Year 1 – Year 6)</h3>
+                        <p class="stage-desc">Focuses on building core competencies in literacy, numeracy, logical reasoning, and creative play to establish a powerful foundation for lifelong learning.</p>
+                        <div class="stage-tags">
+                            <span class="stage-tag">Year 1-6</span>
+                            <span class="stage-tag">Core Math</span>
+                            <span class="stage-tag">Phonics & Grammar</span>
+                            <span class="stage-tag">Inquiry Sciences</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 2: Junior High -->
+                <div class="stage-card">
+                    <div class="stage-img-wrapper">
+                        <img src="african_students_junior.png" alt="Junior Secondary Journey" class="stage-img">
+                        <span class="stage-badge-top">Junior High</span>
+                    </div>
+                    <div class="stage-card-body">
+                        <h3 class="stage-title">Junior High (Year 7 – Year 9)</h3>
+                        <p class="stage-desc">Encourages independent reasoning and critical inquiry as students explore integrated sciences, algebra, coding fundamentals, and global history.</p>
+                        <div class="stage-tags">
+                            <span class="stage-tag">Year 7-9</span>
+                            <span class="stage-tag">Pre-Algebra</span>
+                            <span class="stage-tag">Integrated Lab Sciences</span>
+                            <span class="stage-tag">Digital Literacy</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 3: Senior Secondary -->
+                <div class="stage-card">
+                    <div class="stage-img-wrapper">
+                        <img src="african_students_senior.png" alt="Senior High Journey" class="stage-img">
+                        <span class="stage-badge-top">Senior Stage</span>
+                    </div>
+                    <div class="stage-card-body">
+                        <h3 class="stage-title">Senior Secondary (Year 10 – Year 12)</h3>
+                        <p class="stage-desc">Rigorous college prep targeting key metrics for local and international boards. Features intensive guidance for IGCSE, AP, A-Levels, and SAT exams.</p>
+                        <div class="stage-tags">
+                            <span class="stage-tag">Year 10-12</span>
+                            <span class="stage-tag">Calculus & Advanced Stats</span>
+                            <span class="stage-tag">Exam Mastery</span>
+                            <span class="stage-tag">College Placement</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header" style="margin-top: 60px; margin-bottom: 40px; padding-top: 0;">
+            <span class="section-subtitle">Frameworks Supported</span>
+            <h2 class="section-title" style="font-size: 2rem;">Local & International Curricula</h2>
+        </div>
+
+        <div class="curriculum-grid">
+            <!-- Row 1 -->
+            <div class="curr-card cambridge">
+                <div class="curr-icon"><i class="fa-solid fa-book-open"></i></div>
+                <h3>Cambridge Curriculum</h3>
+                <span class="curr-subtitle">PRESCHOOL - SENIOR SECONDARY</span>
+                <p class="curr-desc">Internationally recognized curriculum with rigorous academic standards and comprehensive assessment frameworks.</p>
+                <a href="javascript:void(0)" onclick="openCurriculumModal('cambridge')" class="curr-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            
+            <div class="curr-card north-american">
+                <div class="curr-icon"><i class="fa-solid fa-globe"></i></div>
+                <h3>North American Curriculum</h3>
+                <span class="curr-subtitle">K-12 EDUCATION</span>
+                <p class="curr-desc">Comprehensive K-12 education system preparing students for North American higher education and beyond.</p>
+                <a href="javascript:void(0)" onclick="openCurriculumModal('north-american')" class="curr-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            
+            <div class="curr-card kenyan">
+                <div class="curr-icon"><i class="fa-solid fa-users"></i></div>
+                <h3>Kenyan Curriculum</h3>
+                <span class="curr-subtitle">8.4.4 | CBC SYSTEM</span>
+                <p class="curr-desc">Local curriculum expertise covering both the traditional 8-4-4 system and modern CBC framework.</p>
+                <a href="javascript:void(0)" onclick="openCurriculumModal('kenyan')" class="curr-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="curr-card edexcel">
+                <div class="curr-icon"><i class="fa-solid fa-award"></i></div>
+                <h3>Edexcel Curriculum</h3>
+                <span class="curr-subtitle">PEARSON QUALIFICATIONS</span>
+                <p class="curr-desc">Pearson Edexcel qualifications providing flexible pathways to higher education and career development.</p>
+                <ul class="curr-list">
+                    <li>BTEC Programs</li>
+                    <li>International GCSE</li>
+                    <li>A-Level Courses</li>
+                    <li>Vocational Training</li>
+                </ul>
+                <a href="javascript:void(0)" onclick="openCurriculumModal('edexcel')" class="curr-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="curr-card ib">
+                <div class="curr-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <h3>IB Diploma</h3>
+                <span class="curr-subtitle">MYP & DIPLOMA PROGRAMME</span>
+                <p class="curr-desc">International Baccalaureate programs fostering critical thinking and global citizenship.</p>
+                <ul class="curr-list">
+                    <li>MYP Years 6-10</li>
+                    <li>DP Years 11-12</li>
+                    <li>Extended Essay</li>
+                    <li>Theory of Knowledge</li>
+                </ul>
+                <a href="javascript:void(0)" onclick="openCurriculumModal('ib')" class="curr-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div class="curr-card ace">
+                <div class="curr-icon"><i class="fa-solid fa-bolt"></i></div>
+                <h3>ACE & Other Systems</h3>
+                <span class="curr-subtitle">ACCELERATED PROGRAMS</span>
+                <p class="curr-desc">Accelerated Christian Education and other specialized curriculum systems for diverse learning needs.</p>
+                <ul class="curr-list">
+                    <li>Self-Paced Learning</li>
+                    <li>Character Building</li>
+                    <li>Diagnostic Testing</li>
+                    <li>Individual Goals</li>
+                </ul>
+                <a href="javascript:void(0)" onclick="openCurriculumModal('ace')" class="curr-link">Learn More <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="section-header">
+            <span class="section-subtitle">Testimonials</span>
+            <h2 class="section-title">What Parents & Students Say</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="rating">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <p class="testimonial-text">"Sanity Tutoring transformed my son's attitude towards Math. His scores improved from a C to an A- within just one term."</p>
+                <div class="reviewer-info">
+                    <img src="avatar_theresa.png" alt="Parent" class="reviewer-avatar">
+                    <div>
+                        <h4 class="reviewer-name">Theresa Webb</h4>
+                        <span class="reviewer-role">Parent of High School Junior</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="rating">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <p class="testimonial-text">"The chemistry prep session was incredibly structured and targeted. I felt completely confident going into my AP Chemistry exam."</p>
+                <div class="reviewer-info">
+                    <img src="avatar_albert.png" alt="Student" class="reviewer-avatar">
+                    <div>
+                        <h4 class="reviewer-name">Albert Flores</h4>
+                        <span class="reviewer-role">AP Physics Student</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="rating">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star-half-stroke"></i>
+                </div>
+                <p class="testimonial-text">"Outstanding professionalism. The lesson reports help me track exactly where my daughter needs extra support."</p>
+                <div class="reviewer-info">
+                    <img src="avatar_jane.png" alt="Parent" class="reviewer-avatar">
+                    <div>
+                        <h4 class="reviewer-name">Jane Cooper</h4>
+                        <span class="reviewer-role">Parent of 8th Grader</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+        <div class="section-header">
+            <span class="section-subtitle">Visual Tour</span>
+            <h2 class="section-title">Life at Sanity Academy</h2>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="african_students_primary.png" alt="Primary School Students" class="gallery-img">
+                <div class="gallery-overlay">
+                    <h3>Primary Stage Focus</h3>
+                    <p>Foundation learning (Year 1 to 6) designed to spark lifelong curiosity.</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="african_students_junior.png" alt="Junior High Students" class="gallery-img">
+                <div class="gallery-overlay">
+                    <h3>Junior High Projects</h3>
+                    <p>Fostering team scientific exploration and project-based analytical thinking.</p>
+                </div>
+            </div>
+            <div class="gallery-item" style="background: linear-gradient(135deg, var(--cream) 0%, #ffffff 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; border: 1px solid rgba(74, 14, 23, 0.05);">
+                <img src="logo.png" alt="S.H.T.A Logo" style="max-height: 110px; object-fit: contain; margin-bottom: 15px; transition: transform 0.3s ease;">
+                <h3 style="color: var(--primary); font-weight: 800; font-size: 1.2rem; text-align: center; margin-bottom: 5px;">Sanity Homebased</h3>
+                <p style="color: var(--accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Tuition Academy</p>
+            </div>
+            <div class="gallery-item">
+                <img src="african_students_senior.png" alt="High School Students" class="gallery-img">
+                <div class="gallery-overlay">
+                    <h3>High School Coding</h3>
+                    <p>Senior high (Year 10 to 12) students building computational reasoning.</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="students_studying.png" alt="Students Studying" class="gallery-img">
+                <div class="gallery-overlay">
+                    <h3>Academic Excellence</h3>
+                    <p>Highly interactive study sessions fostering deep concept understanding.</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="students_playing.png" alt="Students Playing" class="gallery-img">
+                <div class="gallery-overlay">
+                    <h3>Co-curricular Fun</h3>
+                    <p>Active and creative play contributing to all-round character growth.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section id="resources" class="resources-section">
+        <div class="section-header">
+            <span class="section-subtitle">Study Material</span>
+            <h2 class="section-title">Educational Resources & Guides</h2>
+        </div>
+        <div class="resources-container">
+            <aside class="resources-sidebar">
+                <ul class="resource-category-list" id="resources-sidebar-list">
+                    <li><a href="javascript:void(0)" class="filter-btn active" data-category="">All Topics</a></li>
+                </ul>
+            </aside>
+            <main class="resources-main" id="resources-grid">
+                <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gray-600);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;margin-bottom:15px;display:block;"></i>
+                    Loading resources...
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="section-header">
+            <span class="section-subtitle">Common Queries</span>
+            <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">How are your tutors selected and vetted? <i class="fa-solid fa-chevron-down"></i></div>
+                <div class="faq-answer">Every S.H.T.A educator goes through a strict 4-step interview process. This includes verifying their academic credentials, subject-matter proficiency exams, a pedagogical teaching demonstration, and thorough background checks to ensure child safety.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">Do you offer both online and in-person tutoring? <i class="fa-solid fa-chevron-down"></i></div>
+                <div class="faq-answer">Yes, we provide flexible options. For families located in Nairobi, we offer convenient in-home sessions. For international students or those who prefer digital learning, we offer highly interactive online sessions utilizing modern whiteboard software.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">How quickly will I see improvement in my child's grades? <i class="fa-solid fa-chevron-down"></i></div>
+                <div class="faq-answer">While every child learns at their own pace, the vast majority of our parents report noticeable improvements in both confidence and academic scores within the first 4 to 6 weeks of consistent sessions.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">What if my child doesn't connect with their assigned tutor? <i class="fa-solid fa-chevron-down"></i></div>
+                <div class="faq-answer">Student-tutor synergy is crucial for success. If for any reason the match isn't a perfect fit, let us know after the first session and we will gladly reassign a new educator at no additional cost.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter CTA -->
+    <section class="newsletter-cta">
+        <h2>Stay Updated with Educational Insights</h2>
+        <p>Subscribe to our monthly newsletter and download our ultimate SAT/ACT checklist guide free.</p>
+        <form class="newsletter-form">
+            <input type="email" placeholder="Your Email Address" required>
+            <button type="submit">Subscribe</button>
+        </form>
+    </section>
+
+    <!-- Contact & Booking -->
+    <section id="contact" class="contact-section">
+        <div class="contact-header">
+            <h2>Let Us Know How We Can Help You</h2>
+            <p>Would you like to talk to us? We are readily available</p>
+        </div>
+
+        <div class="contact-content">
+            <div class="contact-info">
+                <div class="info-list">
+                    <a href="tel:+254716942939" class="info-item-link">
+                        <div class="info-icon icon-call"><i class="fa-solid fa-phone"></i></div>
+                        <div class="info-text">
+                            <h4>Call/SMS</h4>
+                            <p>+254 716 942 939</p>
+                        </div>
+                    </a>
+                    
+                    <a href="mailto:info@sanityeducation.com" class="info-item-link">
+                        <div class="info-icon icon-email"><i class="fa-regular fa-envelope"></i></div>
+                        <div class="info-text">
+                            <h4>Email</h4>
+                            <p>info@sanityeducation.com</p>
+                        </div>
+                    </a>
+
+                    <a href="https://wa.me/254731091000" target="_blank" class="info-item-link">
+                        <div class="info-icon icon-whatsapp"><i class="fa-brands fa-whatsapp"></i></div>
+                        <div class="info-text">
+                            <h4>WhatsApp</h4>
+                            <p>+254 731 091 000</p>
+                        </div>
+                    </a>
+
+                    <a href="https://maps.google.com/?q=Nairobi,+Kenya" target="_blank" class="info-item-link">
+                        <div class="info-icon icon-location"><i class="fa-solid fa-location-dot"></i></div>
+                        <div class="info-text">
+                            <h4>Location</h4>
+                            <p>Nairobi, Kenya</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="contact-form-wrapper">
+                <form class="contact-form">
+                    <h3>Send us a Message</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="parent-name">Parent/Guardian Name</label>
+                            <input type="text" id="parent-name" required placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="student-name">Student Name (Optional)</label>
+                            <input type="text" id="student-name" placeholder="Enter student's name">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone (Optional)</label>
+                            <input type="tel" id="phone" placeholder="Enter your phone">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="subject">Curriculum Interest (Optional)</label>
+                            <select id="subject">
+                                <option value="" disabled selected>Select curriculum...</option>
+                                <option value="cambridge">Cambridge</option>
+                                <option value="ib">International Baccalaureate</option>
+                                <option value="ap">AP CollegeBoard</option>
+                                <option value="edexcel">Edexcel</option>
+                                <option value="common-core">Common Core</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label for="message">Your Message</label>
+                        <textarea id="message" rows="5" required placeholder="Tell us more about the student's requirements..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-enroll" style="width: 100%; border: none; cursor: pointer; padding: 15px;">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="footer-brand">
+                    <img src="logo.png" alt="Sanity Homebased Logo">
+                    <div class="footer-brand-text">
+                        <h3>Sanity Education</h3>
+                        <span>Inspiring Learning</span>
+                    </div>
+                </div>
+                <p>Converting ordinary learners into academic champions through personalized education programs.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Homeschooling</a></li>
+                    <li><a href="#">Private Tuition</a></li>
+                    <li><a href="#">Exam Preparation</a></li>
+                    <li><a href="#">Holiday Tuition</a></li>
+                    <li><a href="#">Student/Parent Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Curriculum</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Cambridge</a></li>
+                    <li><a href="#">IB Diploma</a></li>
+                    <li><a href="#">Edexcel</a></li>
+                    <li><a href="#">North American K-12</a></li>
+                    <li><a href="#">Kenyan CBC</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <ul class="footer-links">
+                    <li><span class="footer-contact-item"><i class="fa-regular fa-envelope"></i> info@sanityeducation.com</span></li>
+                    <li><span class="footer-contact-item"><i class="fa-solid fa-phone"></i> +254 731 091 000</span></li>
+                    <li><span class="footer-contact-item"><i class="fa-solid fa-location-dot"></i> Nairobi, Kenya</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Sanity Education. All rights reserved.</p>
+            <div class="footer-socials">
+                <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Dynamic Resource Card Animations & Transitions === */
+        .resources-main {
+            transition: opacity 0.25s ease-in-out;
+        }
+        .resources-main.filtering {
+            opacity: 0.2;
+        }
+        .resource-card.new-arrival {
+            animation: slideInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+            border: 2px solid #2ecc71 !important;
+            position: relative;
+        }
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .resource-card.new-arrival::after {
+            content: 'NEW';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #2ecc71;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            animation: pulse 1.5s infinite;
+            z-index: 10;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        .resource-card.fade-out {
+            animation: fadeOutScale 0.4s ease forwards !important;
+            pointer-events: none;
+        }
+        @keyframes fadeOutScale {
+            to {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+                max-height: 0;
+                margin-top: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+
+        /* === Dynamic Resource Card Styles === */
+        .resource-card {
+            background: var(--white);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .resource-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 14px 35px rgba(0,0,0,0.1);
+        }
+        .resource-card-img-wrap {
+            position: relative;
+            height: 190px;
+            overflow: hidden;
+            background: var(--gray-200);
+        }
+        .resource-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .resource-card:hover .resource-card-img {
+            transform: scale(1.06);
+        }
+        .resource-card-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--primary);
+            color: var(--white);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .resource-card-badge.marking_scheme { background: #2ecc71; }
+        .resource-card-badge.notes { background: #3498db; }
+        .resource-card-badge.other { background: #95a5a6; }
+        .resource-card-body {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .resource-card-meta {
+            font-size: 0.78rem;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .resource-card-meta .subject-tag {
+            background: rgba(74,14,23,0.08);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .resource-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            line-height: 1.35;
+            flex: 1;
+        }
+        .resource-card-desc {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .resource-card-footer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray-200);
+        }
+        .resource-card-grade {
+            font-size: 0.78rem;
+            color: var(--gray-600);
+            font-weight: 600;
+        }
+        .resource-card-download {
+            margin-left: auto;
+            background: var(--accent);
+            color: var(--dark);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 7px 15px;
+            border-radius: 6px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .resource-card-download:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+        .res-empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-600);
+        }
+        .res-empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.4;
+        }
+        .res-empty-state p {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+    </style>
+    <script>
+        function toggleCard(element) {
+            const card = element.closest('.service-card');
+            card.classList.toggle('expanded');
+        }
+
+        function toggleFaq(element) {
+            element.classList.toggle('active');
+        }
+
+        // === Dynamic Resource Loader ===
+        let allResources = [];
+        let activeSubjectFilter = '';
+
+        const SUBJECT_FALLBACK_IMAGES = {
+            'mathematics': 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=500',
+            'physics':     'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=500',
+            'chemistry':   'https://images.unsplash.com/photo-1603126857599-f6e157824fce?auto=format&fit=crop&q=80&w=500',
+            'biology':     'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?auto=format&fit=crop&q=80&w=500',
+            'english':     'https://images.unsplash.com/photo-1519791883288-dc8bd696e667?auto=format&fit=crop&q=80&w=500',
+            'swahili':     'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&q=80&w=500',
+        };
+        const DEFAULT_RESOURCE_IMAGE = 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=500';
+
+        function getResourceImage(res) {
+            if (res.cover_image) return res.cover_image;
+            if (res.subject_image) return res.subject_image;
+            const key = (res.subject || '').toLowerCase();
+            return SUBJECT_FALLBACK_IMAGES[key] || DEFAULT_RESOURCE_IMAGE;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // --- Optimized Caching, Reconciliation & Polling for Resources ---
+        function createResourceCardHtml(res) {
+            const imgSrc = getResourceImage(res);
+            const badgeClass = res.material_type || 'other';
+            const badgeLabel = (res.material_type || 'other').replace(/_/g, ' ');
+            const dateStr = formatDate(res.created_at);
+            const fileExt = (res.file_type || '').toUpperCase();
+            
+            return `<article class="resource-card" data-id="${res.id}">
+                <div class="resource-card-img-wrap">
+                    <img src="${imgSrc}" alt="${res.title}" class="resource-card-img" onerror="this.src='${DEFAULT_RESOURCE_IMAGE}'">
+                    <span class="resource-card-badge ${badgeClass}">${badgeLabel}</span>
+                </div>
+                <div class="resource-card-body">
+                    <div class="resource-card-meta">
+                        <i class="fa-regular fa-calendar"></i>${dateStr}
+                        <span class="subject-tag">${res.subject}</span>
+                    </div>
+                    <h3 class="resource-card-title">${res.title}</h3>
+                    <p class="resource-card-desc">${(res.description || '').slice(0, 90)}${(res.description || '').length > 90 ? '&hellip;' : ''}</p>
+                    <div class="resource-card-footer">
+                        <span class="resource-card-grade"><i class="fa-solid fa-layer-group" style="margin-right:4px;"></i>${res.grade_level}</span>
+                        <a href="${res.file_path}" target="_blank" class="resource-card-download">
+                            <i class="fa-solid fa-download"></i> ${fileExt || 'Download'}
+                        </a>
+                    </div>
+                </div>
+            </article>`;
+        }
+
+        function renderResources(list) {
+            const grid = document.getElementById('resources-grid');
+            if (!grid) return;
+            if (!list || list.length === 0) {
+                grid.innerHTML = `<div class="res-empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>No resources available yet.<br><small>Check back soon — materials are being uploaded.</small></p>
+                </div>`;
+                return;
+            }
+            grid.innerHTML = list.map(res => createResourceCardHtml(res)).join('');
+        }
+
+        function reconcileResources(newList) {
+            const grid = document.getElementById('resources-grid');
+            if (!grid) return;
+            
+            const filteredNewList = activeSubjectFilter === '' 
+                ? newList 
+                : newList.filter(r => r.subject === activeSubjectFilter);
+
+            if (filteredNewList.length === 0) {
+                grid.innerHTML = `<div class="res-empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>No resources available yet.<br><small>Check back soon — materials are being uploaded.</small></p>
+                </div>`;
+                return;
+            }
+
+            if (grid.querySelector('.res-empty-state')) {
+                grid.innerHTML = '';
+            }
+
+            const currentCards = Array.from(grid.querySelectorAll('.resource-card'));
+            const currentMap = new Map();
+            currentCards.forEach(card => {
+                const id = card.getAttribute('data-id');
+                if (id) currentMap.set(id, card);
+            });
+
+            const newIds = new Set(filteredNewList.map(r => String(r.id)));
+
+            // 1. Remove deleted resources smoothly
+            currentCards.forEach(card => {
+                const id = card.getAttribute('data-id');
+                if (id && !newIds.has(id)) {
+                    card.classList.add('fade-out');
+                    setTimeout(() => {
+                        if (card.parentNode === grid) {
+                            grid.removeChild(card);
+                        }
+                    }, 400);
+                }
+            });
+
+            // 2. Add or update resources in place
+            filteredNewList.forEach((res, index) => {
+                const id = String(res.id);
+                const existingCard = currentMap.get(id);
+                const cardHtmlContent = createResourceCardHtml(res);
+
+                if (existingCard) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = cardHtmlContent;
+                    const newInner = temp.firstElementChild.innerHTML;
+                    if (existingCard.innerHTML !== newInner) {
+                        existingCard.innerHTML = newInner;
+                    }
+                    const children = Array.from(grid.children).filter(c => c.classList.contains('resource-card') && !c.classList.contains('fade-out'));
+                    if (children[index] !== existingCard) {
+                        grid.insertBefore(existingCard, children[index] || null);
+                    }
+                } else {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = cardHtmlContent;
+                    const newCard = temp.firstElementChild;
+                    
+                    if (allResources.length > 0) {
+                        newCard.classList.add('new-arrival');
+                        setTimeout(() => {
+                            newCard.classList.remove('new-arrival');
+                        }, 5000);
+                    }
+
+                    const children = Array.from(grid.children).filter(c => c.classList.contains('resource-card') && !c.classList.contains('fade-out'));
+                    grid.insertBefore(newCard, children[index] || null);
+                }
+            });
+        }
+
+        function setActiveFilter(btn, subject) {
+            const grid = document.getElementById('resources-grid');
+            if (grid) {
+                grid.classList.add('filtering');
+            }
+            document.querySelectorAll('#resources-sidebar-list .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeSubjectFilter = subject;
+            
+            setTimeout(() => {
+                renderResources(subject === '' ? allResources : allResources.filter(r => r.subject === subject));
+                if (grid) {
+                    grid.classList.remove('filtering');
+                }
+            }, 200);
+        }
+
+        function renderSidebarSubjects(subjects) {
+            const list = document.getElementById('resources-sidebar-list');
+            if (!list) return;
+            const activeBtn = list.querySelector('.filter-btn.active');
+            const activeSubj = activeBtn ? (activeBtn.getAttribute('data-subject') || '') : '';
+            
+            list.innerHTML = `<li><a href="javascript:void(0)" class="filter-btn ${activeSubj === '' ? 'active' : ''}" data-subject="" onclick="setActiveFilter(this, '')">All Topics</a></li>`;
+            
+            subjects.forEach(s => {
+                const li = document.createElement('li');
+                const isActive = activeSubj === s.name;
+                li.innerHTML = `<a href="javascript:void(0)" class="filter-btn ${isActive ? 'active' : ''}" data-subject="${s.name}" onclick="setActiveFilter(this, '${s.name}')">${s.name}</a>`;
+                list.appendChild(li);
+            });
+        }
+
+        function initCachedData() {
+            try {
+                const cachedSubjs = localStorage.getItem('shta_cached_subjects');
+                if (cachedSubjs) {
+                    window.cachedSubjectsList = JSON.parse(cachedSubjs);
+                    renderSidebarSubjects(window.cachedSubjectsList);
+                }
+                const cachedRes = localStorage.getItem('shta_cached_resources');
+                if (cachedRes) {
+                    allResources = JSON.parse(cachedRes);
+                    renderResources(allResources);
+                }
+            } catch (e) {
+                console.error("Cache initialization failed", e);
+            }
+        }
+
+        function loadPublicSubjects() {
+            const headers = {};
+            const savedEtag = localStorage.getItem('shta_cached_subjects_etag');
+            if (savedEtag) {
+                headers['If-None-Match'] = savedEtag;
+            }
+            
+            fetch('api/api_resources.php?action=get_subjects', { headers })
+                .then(r => {
+                    if (r.status === 304) return { status: '304' };
+                    const etag = r.headers.get('ETag');
+                    if (etag) localStorage.setItem('shta_cached_subjects_etag', etag);
+                    return r.json();
+                })
+                .then(data => {
+                    if (data && data.status === '304') return;
+                    if (data && data.status === 'success' && data.subjects) {
+                        window.cachedSubjectsList = data.subjects;
+                        const cachedRaw = localStorage.getItem('shta_cached_subjects');
+                        if (JSON.stringify(data.subjects) !== cachedRaw) {
+                            localStorage.setItem('shta_cached_subjects', JSON.stringify(data.subjects));
+                            renderSidebarSubjects(data.subjects);
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function loadPublicResources() {
+            const grid = document.getElementById('resources-grid');
+            if (grid && (!allResources || allResources.length === 0)) {
+                grid.innerHTML = `<div class="res-empty-state"><i class="fa-solid fa-spinner fa-spin" style="opacity:0.5;"></i><p>Loading resources&hellip;</p></div>`;
+            }
+            
+            const headers = {};
+            const savedEtag = localStorage.getItem('shta_cached_resources_etag');
+            if (savedEtag) {
+                headers['If-None-Match'] = savedEtag;
+            }
+            
+            fetch('api/api_resources.php?action=all', { headers })
+                .then(r => {
+                    if (r.status === 304) return { status: '304' };
+                    const etag = r.headers.get('ETag');
+                    if (etag) localStorage.setItem('shta_cached_resources_etag', etag);
+                    return r.json();
+                })
+                .then(data => {
+                    if (data && data.status === '304') {
+                        if (allResources && allResources.length > 0 && grid && grid.querySelector('.res-empty-state')) {
+                            renderResources(allResources);
+                        }
+                        return;
+                    }
+                    if (data && data.status === 'success' && data.resources) {
+                        const cachedRaw = localStorage.getItem('shta_cached_resources');
+                        const newResources = data.resources || [];
+                        if (JSON.stringify(newResources) !== cachedRaw) {
+                            const isInitialLoad = !allResources || allResources.length === 0;
+                            localStorage.setItem('shta_cached_resources', JSON.stringify(newResources));
+                            
+                            if (isInitialLoad) {
+                                allResources = newResources;
+                                renderResources(allResources);
+                            } else {
+                                reconcileResources(newResources);
+                                allResources = newResources;
+                            }
+                        }
+                    }
+                })
+                .catch(() => {
+                    if (!allResources || allResources.length === 0) {
+                        renderResources([]);
+                    }
+                });
+        }
+
+        function fetchResourcesSilently() {
+            const headers = {};
+            const savedEtag = localStorage.getItem('shta_cached_resources_etag');
+            if (savedEtag) {
+                headers['If-None-Match'] = savedEtag;
+            }
+            
+            fetch('api/api_resources.php?action=all', { headers })
+                .then(r => {
+                    if (r.status === 304) return { status: '304' };
+                    const etag = r.headers.get('ETag');
+                    if (etag) localStorage.setItem('shta_cached_resources_etag', etag);
+                    return r.json();
+                })
+                .then(data => {
+                    if (data && data.status === '304') return;
+                    if (data && data.status === 'success' && data.resources) {
+                        const cachedRaw = localStorage.getItem('shta_cached_resources');
+                        const newResources = data.resources || [];
+                        if (JSON.stringify(newResources) !== cachedRaw) {
+                            localStorage.setItem('shta_cached_resources', JSON.stringify(newResources));
+                            reconcileResources(newResources);
+                            allResources = newResources;
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCachedData();
+            loadPublicSubjects();
+            loadPublicResources();
+            
+            // Periodically check for updates (every 15 seconds) silently
+            setInterval(() => {
+                fetchResourcesSilently();
+            }, 15000);
+        });
+    </script>
+    <!-- Curriculum Modal -->
+    <div id="curriculumModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeCurriculumModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <div class="modal-icon" id="modalIcon"></div>
+                <h3 id="modalTitle">Curriculum Title</h3>
+                <span id="modalSubtitle" class="curr-subtitle" style="margin-bottom: 0;">SUBTITLE</span>
+            </div>
+            <div class="modal-body">
+                <p id="modalDesc">Full description goes here...</p>
+                <div id="modalExtraContent"></div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="#contact" class="btn-enroll" style="display: inline-block; width: 100%; text-align: center;" onclick="closeCurriculumModal()">Speak with an Official</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const curriculumData = {
+            cambridge: {
+                title: "Cambridge Curriculum",
+                subtitle: "PRESCHOOL - SENIOR SECONDARY",
+                icon: '<i class="fa-solid fa-book-open" style="color: #4a90e2;"></i>',
+                desc: "The Cambridge International Curriculum sets a global standard for education, and is recognized by universities and employers worldwide. Our curriculum is flexible, challenging and inspiring, culturally sensitive yet international in approach.",
+                extra: "<ul><li>Cambridge Primary (5-11 years)</li><li>Cambridge Lower Secondary (11-14 years)</li><li>Cambridge Upper Secondary (IGCSE) (14-16 years)</li><li>Cambridge Advanced (AS & A Levels) (16-19 years)</li></ul>"
+            },
+            'north-american': {
+                title: "North American Curriculum",
+                subtitle: "K-12 EDUCATION",
+                icon: '<i class="fa-solid fa-globe" style="color: #9b51e0;"></i>',
+                desc: "Our North American curriculum offers a comprehensive K-12 education system that prepares students for higher education in the US, Canada, and globally. It emphasizes critical thinking, problem-solving, and continuous assessment.",
+                extra: "<ul><li>Common Core Standards integration</li><li>Advanced Placement (AP) courses available</li><li>Holistic student development</li><li>Project-based learning</li></ul>"
+            },
+            kenyan: {
+                title: "Kenyan Curriculum",
+                subtitle: "8.4.4 | CBC SYSTEM",
+                icon: '<i class="fa-solid fa-users" style="color: #2ecc71;"></i>',
+                desc: "We provide expert tutoring in both the traditional 8-4-4 system and the modern Competency-Based Curriculum (CBC). Our local curriculum experts ensure students meet national standards and excel in national examinations.",
+                extra: "<ul><li>KCPE & KCSE Exam Preparation</li><li>CBC Pathway guidance</li><li>Formative and Summative assessments</li><li>Practical skills development</li></ul>"
+            },
+            edexcel: {
+                title: "Edexcel Curriculum",
+                subtitle: "PEARSON QUALIFICATIONS",
+                icon: '<i class="fa-solid fa-award" style="color: #f39c12;"></i>',
+                desc: "Pearson Edexcel qualifications provide flexible pathways to higher education and career development. Known for their academic rigor and practical relevance, they empower learners to achieve their full potential.",
+                extra: "<ul><li>BTEC Programs</li><li>International GCSE</li><li>A-Level Courses</li><li>Vocational Training</li></ul>"
+            },
+            ib: {
+                title: "IB Diploma",
+                subtitle: "MYP & DIPLOMA PROGRAMME",
+                icon: '<i class="fa-solid fa-graduation-cap" style="color: #1abc9c;"></i>',
+                desc: "The International Baccalaureate (IB) programs foster critical thinking and global citizenship. We guide students through the rigorous requirements of the MYP and DP, ensuring they develop into inquiring, knowledgeable, and caring young people.",
+                extra: "<ul><li>MYP Years 6-10</li><li>DP Years 11-12</li><li>Extended Essay Support</li><li>Theory of Knowledge (TOK) prep</li></ul>"
+            },
+            ace: {
+                title: "ACE & Other Systems",
+                subtitle: "ACCELERATED PROGRAMS",
+                icon: '<i class="fa-solid fa-bolt" style="color: #f1c40f;"></i>',
+                desc: "Accelerated Christian Education (ACE) and other specialized curriculum systems cater to diverse learning needs. We provide the structured support and diagnostic testing required for self-paced, mastery-based learning.",
+                extra: "<ul><li>Self-Paced Learning</li><li>Character Building</li><li>Diagnostic Testing</li><li>Individual Goals Tracking</li></ul>"
+            }
+        };
+
+        function openCurriculumModal(id) {
+            const data = curriculumData[id];
+            if (!data) return;
+            
+            document.getElementById('modalTitle').textContent = data.title;
+            document.getElementById('modalSubtitle').textContent = data.subtitle;
+            document.getElementById('modalIcon').innerHTML = data.icon;
+            document.getElementById('modalDesc').textContent = data.desc;
+            document.getElementById('modalExtraContent').innerHTML = data.extra;
+            
+            document.getElementById('curriculumModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCurriculumModal() {
+            document.getElementById('curriculumModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Enrollment Modal Logic
+        function openEnrollmentModal() {
+            document.getElementById('enrollmentForm').style.display = 'block';
+            document.getElementById('enrollmentSuccess').style.display = 'none';
+            document.getElementById('enrollmentForm').reset();
+            document.getElementById('enrollmentModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Dynamic curriculum loading
+            loadCurriculumsForEnrollment();
+            toggleCustomCurriculumField();
+            // Render initial student card(s) with nationality & language
+            renderEnrollStudentCards();
+        }
+
+        function closeEnrollmentModal() {
+            document.getElementById('enrollmentModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function toggleLocationFields() {
+            const isHome = document.querySelector('input[name="venue_preference"][value="home"]').checked;
+            const locFields = document.getElementById('locationFields');
+            const placeInput = document.getElementById('locPlace');
+            const estateInput = document.getElementById('locEstate');
+            const linkInput = document.getElementById('locLink');
+            
+            if(isHome) {
+                locFields.style.display = 'block';
+                placeInput.setAttribute('required', 'true');
+                estateInput.setAttribute('required', 'true');
+                linkInput.setAttribute('required', 'true');
+            } else {
+                locFields.style.display = 'none';
+                placeInput.removeAttribute('required');
+                estateInput.removeAttribute('required');
+                linkInput.removeAttribute('required');
+            }
+        }
+
+        function toggleCustomCurriculumField() {
+            const selectEl = document.getElementById('enrollCurriculum');
+            const groupEl = document.getElementById('customCurriculumGroup');
+            const inputEl = document.getElementById('customCurriculumInput');
+            if (selectEl && selectEl.value === 'custom') {
+                if (groupEl) groupEl.style.display = 'block';
+                if (inputEl) inputEl.setAttribute('required', 'true');
+            } else {
+                if (groupEl) groupEl.style.display = 'none';
+                if (inputEl) {
+                    inputEl.removeAttribute('required');
+                    inputEl.value = '';
+                }
+            }
+        }
+
+        function handleEnrollmentCurriculumChange() {
+            const curriculumSelect = document.getElementById('enrollCurriculum');
+            const gradeSelect = document.getElementById('enrollStudentGradeSelect');
+            const gradeInput = document.getElementById('enrollStudentGradeInput');
+            
+            if (!curriculumSelect || !gradeSelect || !gradeInput) return;
+            
+            const selectedText = curriculumSelect.options[curriculumSelect.selectedIndex]?.text || '';
+            const textLower = selectedText.toLowerCase();
+            
+            let grades = [];
+            if (textLower.includes('cbc') || textLower.includes('american')) {
+                for (let i = 1; i <= 12; i++) {
+                    grades.push(`Grade ${i}`);
+                }
+            } else if (textLower.includes('cambridge')) {
+                for (let i = 1; i <= 13; i++) {
+                    grades.push(`Year ${i}`);
+                }
+            } else if (textLower.includes('8-4-4') || textLower.includes('844')) {
+                for (let i = 1; i <= 8; i++) {
+                    grades.push(`Class ${i}`);
+                }
+            }
+            
+            if (grades.length > 0) {
+                gradeSelect.innerHTML = '<option value="" disabled selected>Select Grade...</option>';
+                grades.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = g;
+                    gradeSelect.appendChild(opt);
+                });
+                
+                gradeSelect.style.display = 'block';
+                gradeSelect.required = true;
+                gradeSelect.name = 'student_grade';
+                
+                gradeInput.style.display = 'none';
+                gradeInput.required = false;
+                gradeInput.name = '';
+            } else {
+                gradeSelect.style.display = 'none';
+                gradeSelect.required = false;
+                gradeSelect.name = '';
+                
+                gradeInput.style.display = 'block';
+                gradeInput.required = true;
+                gradeInput.name = 'student_grade';
+            }
+            
+            toggleCustomCurriculumField();
+        }
+
+        function loadCurriculumsForEnrollment() {
+            fetch('api/api_curriculums.php?action=get_active')
+                .then(r => r.json())
+                .then(d => {
+                    const selectEl = document.getElementById('enrollCurriculum');
+                    if (!selectEl) return;
+                    
+                    selectEl.innerHTML = '<option value="" disabled selected>Select Curriculum...</option>';
+                    if (d.status === 'success' && d.curriculums) {
+                        d.curriculums.forEach(c => {
+                            selectEl.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                        });
+                    }
+                    selectEl.innerHTML += '<option value="custom">Other / Custom Curriculum...</option>';
+                    
+                    // Call the change handler to sync initial state
+                    handleEnrollmentCurriculumChange();
+                })
+                .catch(err => console.error('Error loading curriculums:', err));
+        }
+
+        function renderEnrollStudentCards() {
+            const count = parseInt(document.getElementById('enrollStudentCount')?.value || 1);
+            const container = document.getElementById('enroll-student-cards-container');
+            if (!container) return;
+
+            const NATIONALITIES = ["Afghan","Albanian","Algerian","American","Andorran","Angolan","Antiguan/Barbudan","Argentine","Armenian","Australian","Austrian","Azerbaijani","Bahamian","Bahraini","Bangladeshi","Barbadian","Belarusian","Belgian","Belizean","Beninese","Bhutanese","Bolivian","Bosnian/Herzegovinian","Batswana","Brazilian","British","Bruneian","Bulgarian","Burkinabe","Burundian","Cabo Verdean","Cambodian","Cameroonian","Canadian","Central African","Chadian","Chilean","Chinese","Colombian","Comorian","Congolese","Costa Rican","Ivorian","Croatian","Cuban","Cypriot","Czech","Danish","Djiboutian","Dominican","Dutch","Ecuadorian","Egyptian","Salvadoran","Eritrean","Estonian","Eswatini","Ethiopian","Fijian","Finnish","French","Gabonese","Gambian","Georgian","German","Ghanaian","Greek","Grenadian","Guatemalan","Guinean","Guyanese","Haitian","Honduran","Hungarian","Icelandic","Indian","Indonesian","Iranian","Iraqi","Irish","Israeli","Italian","Jamaican","Japanese","Jordanian","Kazakh","Kenyan","North Korean","South Korean","Kuwaiti","Kyrgyz","Lao","Latvian","Lebanese","Liberian","Libyan","Lithuanian","Luxembourgish","Malagasy","Malawian","Malaysian","Maldivian","Malian","Maltese","Mauritanian","Mauritian","Mexican","Moldovan","Mongolian","Montenegrin","Moroccan","Mozambican","Burmese","Namibian","Nepali","New Zealander","Nicaraguan","Nigerian","Norwegian","Omani","Pakistani","Palestinian","Panamanian","Paraguayan","Peruvian","Filipino","Polish","Portuguese","Qatari","Romanian","Russian","Rwandan","Saudi","Senegalese","Serbian","Seychellois","Sierra Leonean","Singaporean","Slovak","Slovenian","Somali","South African","South Sudanese","Spanish","Sri Lankan","Sudanese","Surinamese","Swedish","Swiss","Syrian","Tajik","Tanzanian","Thai","Timorese","Togolese","Tunisian","Turkish","Turkmen","Ugandan","Ukrainian","Emirati","Uruguayan","Uzbek","Venezuelan","Vietnamese","Yemeni","Zambian","Zimbabwean"];
+            const LANGUAGES = ["English","Swahili","French","Arabic","Spanish","Mandarin Chinese","German","Portuguese","Russian","Japanese","Hindi","Italian","Dutch","Korean","Turkish","Persian (Farsi)","Urdu","Bengali","Afrikaans","Amharic","Somali","Swedish","Polish","Greek","Hebrew","Vietnamese","Thai","Indonesian","Malay","Tagalog/Filipino","Other"];
+
+            const natOpts = NATIONALITIES.map(n => `<option value="${n}">${n}</option>`).join('');
+            const langOpts = LANGUAGES.map(l => `<option value="${l}">${l}</option>`).join('');
+
+            // Also fill parent nationality
+            const pNat = document.getElementById('enrollParentNationality');
+            if (pNat && pNat.options.length <= 1) {
+                pNat.innerHTML = `<option value="">-- Select Nationality --</option>${natOpts}`;
+            }
+
+            const days = Array.from({length:31}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join('');
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i) => `<option value="${i+1}">${m}</option>`).join('');
+            const currentYear = new Date().getFullYear();
+            const years = Array.from({length:20}, (_,i) => currentYear - i).map(y => `<option value="${y}">${y}</option>`).join('');
+
+            const inputStyle = `width:100%; padding:12px 14px; border:2px solid #E9ECEF; border-radius:8px; font-size:0.9rem; outline:none; background-color:var(--white); transition:border-color 0.2s;`;
+            const labelStyle = `display:block; margin-bottom:6px; font-weight:600; font-size:0.85rem; color:var(--dark);`;
+
+            const DEFAULT_SUBJECTS = [
+                {id: 'Mathematics', name: 'Mathematics'},
+                {id: 'English', name: 'English'},
+                {id: 'Swahili', name: 'Swahili'},
+                {id: 'Biology', name: 'Biology'},
+                {id: 'Chemistry', name: 'Chemistry'},
+                {id: 'Physics', name: 'Physics'},
+                {id: 'Computer Science', name: 'Computer Science'},
+                {id: 'History', name: 'History'},
+                {id: 'Geography', name: 'Geography'},
+                {id: 'Business Studies', name: 'Business Studies'}
+            ];
+            const subjectsList = (window.cachedSubjectsList && window.cachedSubjectsList.length > 0) ? window.cachedSubjectsList : DEFAULT_SUBJECTS;
+            const subjCheckboxOpts = (idx) => subjectsList.map(s => {
+                const val = s.name || s.id;
+                const idStr = `st_${idx}_subj_${s.id || val}`.replace(/[^a-zA-Z0-9_]/g, '_');
+                return `<label style="display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #E9ECEF; padding:6px 10px; border-radius:6px; font-size:0.82rem; cursor:pointer; font-weight:500;">
+                    <input type="checkbox" name="students[${idx}][subjects][]" value="${val}" style="accent-color:var(--primary);"> ${val}
+                </label>`;
+            }).join('');
+
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `<div style="background:linear-gradient(135deg,rgba(74,14,23,0.04) 0%,rgba(229,169,59,0.08) 100%); border:1.5px solid rgba(74,14,23,0.2); border-radius:12px; padding:20px; margin-bottom:16px;">
+                    <h4 style="margin:0 0 14px; color:var(--primary); font-size:0.92rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-user-graduate" style="color:var(--accent);"></i> Student ${i+1}
+                    </h4>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:14px;">
+                        <div>
+                            <label style="${labelStyle}">Full Name <span style="color:red;">*</span></label>
+                            <input type="text" name="students[${i}][name]" required placeholder="Student Full Name" style="${inputStyle}">
+                        </div>
+                        <div>
+                            <label style="${labelStyle}">Grade / Level <span style="color:red;">*</span></label>
+                            <input type="text" name="students[${i}][grade]" required placeholder="e.g. Grade 8 / Year 10" style="${inputStyle}">
+                        </div>
+                        <div>
+                            <label style="${labelStyle}">Date of Birth</label>
+                            <div style="display:flex; gap:5px;">
+                                <select name="students[${i}][dob_day]" style="${inputStyle} flex:1;" onchange="syncEnrollDob(${i})">
+                                    <option value="">Day</option>${days}
+                                </select>
+                                <select name="students[${i}][dob_month]" style="${inputStyle} flex:1.6;" onchange="syncEnrollDob(${i})">
+                                    <option value="">Month</option>${months}
+                                </select>
+                                <select name="students[${i}][dob_year]" style="${inputStyle} flex:1.2;" onchange="syncEnrollDob(${i})">
+                                    <option value="">Year</option>${years}
+                                </select>
+                            </div>
+                            <input type="hidden" name="students[${i}][dob]" id="enroll-dob-hidden-${i}">
+                        </div>
+                        <div>
+                            <label style="${labelStyle}">Student Nationality</label>
+                            <select name="students[${i}][nationality]" style="${inputStyle}">
+                                <option value="">-- Select Nationality --</option>${natOpts}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="${labelStyle}">First Language</label>
+                            <select name="students[${i}][first_language]" style="${inputStyle}">
+                                <option value="">-- Select Language --</option>${langOpts}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="${labelStyle}"><i class="fa-solid fa-book-bookmark" style="color:var(--accent); margin-right:4px;"></i> Select Subjects to be Taught at School <span style="color:red;">*</span></label>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; background:rgba(255,255,255,0.7); padding:12px; border-radius:8px; border:1px solid #E9ECEF;">
+                            ${subjCheckboxOpts(i)}
+                        </div>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function syncEnrollDob(idx) {
+            const day   = document.querySelector(`[name="students[${idx}][dob_day]"]`)?.value;
+            const month = document.querySelector(`[name="students[${idx}][dob_month]"]`)?.value;
+            const year  = document.querySelector(`[name="students[${idx}][dob_year]"]`)?.value;
+            const hidden = document.getElementById(`enroll-dob-hidden-${idx}`);
+            if (hidden && day && month && year) {
+                hidden.value = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            }
+        }
+
+        function submitEnrollment(e) {
+            e.preventDefault();
+            const form = document.getElementById('enrollmentForm');
+            const formData = new FormData(form);
+
+            fetch('submit_enrollment.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    document.getElementById('enrollmentForm').style.display = 'none';
+                    document.getElementById('enrollmentSuccess').style.display = 'block';
+                } else {
+                    alert('Submission error: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Connection error occurred.');
+            });
+        }
+    </script>
+
+    
+    <!-- Enrollment Modal -->
+    <div id="enrollmentModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 750px; padding: 0; overflow: hidden; border-radius: 16px; max-height: 90vh; display: flex; flex-direction: column;">
+            <button class="modal-close" style="color: var(--white); z-index: 10;" onclick="closeEnrollmentModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary) 0%, #2a080d 100%); color: var(--white); padding: 40px 30px 30px; margin-bottom: 0; border-bottom: none; position: relative; overflow: hidden; flex-shrink: 0;">
+                <img src="logo.png" alt="S.H.T.A Logo" style="height: 60px; margin-bottom: 15px; position: relative; z-index: 5;">
+                <h3 style="color: var(--white); font-weight: 700; font-size: 2rem; margin-bottom: 5px; position: relative; z-index: 5;">Student Enrollment</h3>
+                <span class="curr-subtitle" style="margin-bottom: 0; color: var(--accent); position: relative; z-index: 5;">Begin Your Journey With Us</span>
+                <!-- Background decoration -->
+                <div style="position: absolute; top: -50px; left: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(229,169,59,0.15) 0%, transparent 70%); border-radius: 50%;"></div>
+            </div>
+            
+            <div class="modal-body" id="enrollmentFormContainer" style="padding: 40px; background-color: var(--cream); overflow-y: auto;">
+                <form id="enrollmentForm" onsubmit="submitEnrollment(event)" style="text-align: left;">
+                    <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Parent/Guardian Full Name</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-user" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <input type="text" name="parent_name" required placeholder="John Doe" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Primary Phone Number</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-phone" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <input type="tel" name="parent_phone" required placeholder="+254 7XX XXX XXX" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Primary Email Address</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-envelope" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <input type="email" name="parent_email" required placeholder="john@example.com" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parent Nationality -->
+                    <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Parent / Guardian Nationality</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-globe" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600); z-index:5;"></i>
+                                <select name="parent_nationality" id="enrollParentNationality" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)';" onblur="this.style.borderColor='#E9ECEF';">
+                                    <option value="">-- Select Nationality --</option>
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Number of Students to Enroll <span style="color:red;">*</span></label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-users" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600); z-index:5;"></i>
+                                <select id="enrollStudentCount" onchange="renderEnrollStudentCards()" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)';" onblur="this.style.borderColor='#E9ECEF';">
+                                    <option value="1">1 Student</option>
+                                    <option value="2">2 Students</option>
+                                    <option value="3">3 Students</option>
+                                    <option value="4">4 Students</option>
+                                    <option value="5">5 Students</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Student Cards -->
+                    <div id="enroll-student-cards-container" style="margin-bottom:20px;">
+                        <!-- Populated dynamically by renderEnrollStudentCards() -->
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 25px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Specific Learning Needs / Subject Focus</label>
+                        <div style="position: relative;">
+                            <i class="fa-solid fa-pen" style="position: absolute; left: 15px; top: 18px; color: var(--gray-600);"></i>
+                            <textarea name="learning_needs" required placeholder="Briefly describe what the student needs help with (e.g. Math tutoring, Exam Prep, Special Needs)..." rows="3" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; resize: vertical; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';"></textarea>
+                    </div>
+
+
+                    <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Study Option</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-graduation-cap" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <select name="study_type" required style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)';" onblur="this.style.borderColor='#E9ECEF';">
+                                    <option value="tuition">Tuition (Part-Time Support)</option>
+                                    <option value="homeschooling">Homeschooling (Full-Time Program)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Preferred Curriculum</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-book" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <select name="curriculum_id" id="enrollCurriculum" onchange="handleEnrollmentCurriculumChange()" required style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)';" onblur="this.style.borderColor='#E9ECEF';">
+                                    <option value="" disabled selected>Select Curriculum...</option>
+                                    <!-- Options populated dynamically -->
+                                    <option value="custom">Other / Custom Curriculum...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="customCurriculumGroup" style="display: none; margin-bottom: 20px; padding: 15px; background: #fff8f8; border-radius: 8px; border: 1px dashed var(--primary);">
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Write Your Custom Curriculum</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-pen-clip" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <input type="text" name="custom_curriculum" id="customCurriculumInput" placeholder="Enter custom curriculum name (e.g. Waldorf, ACE)" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)';" onblur="this.style.borderColor='#E9ECEF';">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 30px; background: var(--white); padding: 20px; border-radius: 8px; border: 2px solid #E9ECEF;">
+                        <label style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Venue Preference</label>
+                        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; color: var(--dark);">
+                                <input type="radio" name="venue_preference" value="school" required style="width: 20px; height: 20px; accent-color: var(--primary);" onchange="toggleLocationFields()">
+                                Sanity School Venue (On-Site)
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; color: var(--dark);">
+                                <input type="radio" name="venue_preference" value="home" required style="width: 20px; height: 20px; accent-color: var(--primary);" onchange="toggleLocationFields()">
+                                Home-Visit (Private Tuition)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Location Fields (Only for Home-Visit) -->
+                    <div id="locationFields" style="display: none; margin-bottom: 30px; padding: 25px; background: #fff8f8; border-radius: 8px; border: 1px dashed var(--primary);">
+                        <h4 style="margin-bottom: 20px; color: var(--primary); font-size: 1.05rem; font-weight: 700;"><i class="fa-solid fa-map-location-dot" style="margin-right: 8px;"></i>Home-Visit Details</h4>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">General Area / Place</label>
+                            <div style="position: relative;">
+                                <i class="fa-solid fa-map-pin" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                <input type="text" id="locPlace" name="loc_place" placeholder="e.g. Kilimani, Westlands, Kileleshwa" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 20px;">
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Apartment / Estate Name</label>
+                                <div style="position: relative;">
+                                    <i class="fa-solid fa-building" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                    <input type="text" id="locEstate" name="loc_estate" placeholder="e.g. Royal Apartments, House 42" style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';">
+                                </div>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--dark);">Location Link (Google Maps)</label>
+                                <div style="position: relative;">
+                                    <i class="fa-solid fa-link" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-600);"></i>
+                                    <input type="url" id="locLink" name="loc_link" placeholder="Paste Google Maps link here..." style="width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; outline: none; transition: all 0.3s ease; background-color: var(--white);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px rgba(229, 169, 59, 0.15)';" onblur="this.style.borderColor='#E9ECEF'; this.style.boxShadow='none';">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-enroll" style="width: 100%; border: none; cursor: pointer; padding: 16px; font-size: 1.1rem; border-radius: 8px; background-color: var(--primary); color: var(--white); font-weight: 700; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(74, 14, 23, 0.25);" onmouseover="this.style.backgroundColor='#380a11'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='var(--primary)'; this.style.transform='translateY(0)';">Submit Enrollment Application</button>
+                    
+                    <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #E9ECEF;">
+                        <p style="font-size: 0.85rem; color: var(--gray-600); display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-shield-halved" style="color: var(--accent);"></i> System Guardrail: Entry safely routed to isolated staging table.
+                        </p>
+                    </div>
+                </form>
+
+                <div id="enrollmentSuccess" style="display: none; text-align: center; padding: 40px 20px;">
+                    <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: var(--accent); margin-bottom: 25px;"></i>
+                    <h3 style="font-size: 2rem; color: var(--primary); margin-bottom: 15px; font-weight: 700;">Application Received</h3>
+                    <p style="color: var(--dark); margin-bottom: 20px; line-height: 1.6; font-size: 1.05rem;">Thank you for your interest! Your entry has been safely routed to our <strong style="color: var(--primary);">isolated enrollment_inquiries staging table</strong>.</p>
+                    <div style="background: var(--white); padding: 20px; border-radius: 8px; border: 1px solid #E9ECEF; margin-bottom: 30px;">
+                        <p style="color: var(--gray-600); line-height: 1.6; font-size: 0.95rem; margin: 0;">This system guardrail ensures our core directory remains clean. An admissions officer will review your application and contact you shortly to complete the onboarding process.</p>
+                    </div>
+                    <button class="btn-enroll" style="border: none; cursor: pointer; padding: 14px 40px; border-radius: 8px; font-size: 1.05rem;" onclick="closeEnrollmentModal()">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

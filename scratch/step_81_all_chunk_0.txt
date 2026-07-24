@@ -1,0 +1,5 @@
+﻿    <div class="nav-section-label">Operations</div>
+    <div class="nav-item" onclick="switchTab('expenses', this)"><i class="fa-solid fa-wallet"></i> Extra Expenses</div>
+    <div class="nav-item" onclick="switchTab('expreport', this)"><i class="fa-solid fa-chart-pie"></i> Expense Reports</div>
+    <div class="nav-item" onclick="switchTab('finreport', this)"><i class="fa-solid fa-chart-column"></i> Full Financial Report</div>
+</aside>
