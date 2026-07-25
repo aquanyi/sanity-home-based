@@ -64,7 +64,7 @@ if ($method === 'GET') {
     // ── Fetch all term dates ──
     if ($action === 'get_term_dates') {
         try {
-            $stmt  = $pdo->query("SELECT * FROM term_dates ORDER BY academic_year DESC, term_number ASC");
+            $stmt  = $pdo->query("SELECT t.*, c.name AS curriculum_name FROM term_dates t LEFT JOIN curriculums c ON t.curriculum_id = c.id ORDER BY t.start_date DESC");
             $terms = $stmt->fetchAll();
             echo json_encode(['status' => 'success', 'terms' => $terms]);
         } catch (\PDOException $e) {
@@ -109,6 +109,7 @@ if ($method === 'POST') {
     // ── Save / upsert term dates ──
     if ($action === 'save_term_dates') {
         $academic_year = trim($_POST['academic_year'] ?? '');
+        $curriculum_id = filter_input(INPUT_POST, 'curriculum_id', FILTER_VALIDATE_INT);
 
         // Terms are sent as indexed arrays: terms[0][term_number], terms[0][term_name] etc.
         $terms = $_POST['terms'] ?? [];
@@ -122,12 +123,13 @@ if ($method === 'POST') {
 
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO term_dates (academic_year, term_number, term_name, start_date, end_date)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO term_dates (academic_year, term_number, term_name, start_date, end_date, curriculum_id)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     term_name  = VALUES(term_name),
                     start_date = VALUES(start_date),
-                    end_date   = VALUES(end_date)
+                    end_date   = VALUES(end_date),
+                    curriculum_id = VALUES(curriculum_id)
             ");
 
             $savedCount = 0;
@@ -146,7 +148,7 @@ if ($method === 'POST') {
                     $errors[] = "{$term_name}: Start date must be before end date.";
                     continue;
                 }
-                $stmt->execute([$academic_year, $term_number, $term_name, $start_date, $end_date]);
+                $stmt->execute([$academic_year, $term_number, $term_name, $start_date, $end_date, $curriculum_id]);
                 $savedCount++;
             }
 

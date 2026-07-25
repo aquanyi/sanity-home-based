@@ -16,6 +16,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized. Please log in.']);
     exit;
 }
+session_write_close();
 
 // Auto-create & update system_notifications table schema
 try {
@@ -56,16 +57,12 @@ if ($method === 'GET') {
         $unread_only = isset($_GET['unread']) && $_GET['unread'] == 1;
 
         try {
-            // Fetch notifications applicable to this role or 'all' or sent by this user or explicitly targeted to this user ID
+            // Fetch notifications applicable to this role or 'all', strictly enforcing target_user_id
             $query = "
                 SELECT *, UNIX_TIMESTAMP(created_at) as created_at_ts 
                 FROM system_notifications 
-                WHERE (
-                    recipient_role = 'all' 
-                    OR (recipient_role = ? AND (recipient_user_id IS NULL OR recipient_user_id = ?))
-                    OR sender_id = ? 
-                    OR sender_name LIKE ?
-                )
+                WHERE (recipient_role = 'all' OR recipient_role = ?)
+                AND (recipient_user_id IS NULL OR recipient_user_id = 0 OR recipient_user_id = ?)
             ";
             if ($unread_only) {
                 $query .= " AND is_read = 0";
@@ -73,7 +70,7 @@ if ($method === 'GET') {
             $query .= " ORDER BY created_at DESC LIMIT 50";
 
             $stmt = $pdo->prepare($query);
-            $stmt->execute([$role, $userId, $userId, '%' . $userName . '%']);
+            $stmt->execute([$role, $userId]);
 
             $rows = $stmt->fetchAll();
             $notifications = [];
@@ -194,8 +191,9 @@ if ($method === 'POST') {
         $sender_name = ($_SESSION['user_name'] ?? 'User') . ' (' . ucfirst($sender_role) . ')';
 
         $recipient_role    = trim($_POST['recipient_role'] ?? 'all');
-        $target_user_id    = trim($_POST['target_user_id'] ?? 'all');
-        $recipient_user_id = ($target_user_id !== 'all' && is_numeric($target_user_id)) ? (int)$target_user_id : (filter_input(INPUT_POST, 'recipient_user_id', FILTER_VALIDATE_INT) ?: null);
+        $target_user_id    = $_POST['target_user_id'] ?? 'all';
+        $target_user_id    = ($target_user_id === 'all' || empty($target_user_id)) ? null : (int)$target_user_id;
+        $recipient_user_id = $target_user_id;
         $title             = trim($_POST['title'] ?? '');
         $message           = trim($_POST['message'] ?? '');
 

@@ -43,6 +43,7 @@ session_write_close();
 // EXAM CREATION (Admin)
 // ─────────────────────────────────────────────────
 if ($action === 'create_exam') {
+    $curriculum_id = filter_input(INPUT_POST, 'curriculum_id', FILTER_VALIDATE_INT);
     $exam_name  = trim($_POST['exam_name'] ?? '');
     $year       = trim($_POST['academic_year'] ?? '');
     $term       = trim($_POST['term_identifier'] ?? '');
@@ -54,8 +55,8 @@ if ($action === 'create_exam') {
     }
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO school_exams (exam_name, academic_year, term_identifier, submission_deadline, automated_alerts_enabled) VALUES (?,?,?,?,?)");
-        $stmt->execute([$exam_name, $year, $term, $deadline, $alerts]);
+        $stmt = $pdo->prepare("INSERT INTO school_exams (curriculum_id, exam_name, academic_year, term_identifier, submission_deadline, automated_alerts_enabled) VALUES (?,?,?,?,?,?)");
+        $stmt->execute([$curriculum_id, $exam_name, $year, $term, $deadline, $alerts]);
         echo json_encode(['status' => 'success', 'message' => "Exam '{$exam_name}' created.", 'exam_id' => $pdo->lastInsertId()]);
     } catch (\PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
@@ -209,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // ── Teacher: get exams + their sessions they can grade ──
     if ($getAction === 'teacher_exams') {
         try {
-            $exams = $pdo->query("SELECT * FROM school_exams ORDER BY created_at DESC")->fetchAll();
+            $exams = $pdo->query("SELECT e.*, c.name AS curriculum_name FROM school_exams e LEFT JOIN curriculums c ON e.curriculum_id = c.id ORDER BY e.created_at DESC")->fetchAll();
             $sessions = $pdo->query("
                 SELECT es.*, se.exam_name, se.submission_deadline,
                        u.name as teacher_name
@@ -383,8 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // ── Default: admin panel data (exams, sessions, assignments, teachers, students) ──
     try {
-        $exams = $pdo->query("SELECT * FROM school_exams ORDER BY created_at DESC")->fetchAll();
-
+        $exams = $pdo->query("SELECT e.*, c.name AS curriculum_name FROM school_exams e LEFT JOIN curriculums c ON e.curriculum_id = c.id ORDER BY e.created_at DESC")->fetchAll();
         $sessions = $pdo->query("
             SELECT es.*, se.exam_name, u.name as teacher_name, u_s.name as student_name
             FROM exam_sessions es

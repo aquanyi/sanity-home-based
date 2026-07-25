@@ -65,7 +65,7 @@ try {
 <head>
     <link rel="icon" type="image/png" href="logo.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.H.T.A – Admin Command Centre</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -89,7 +89,7 @@ try {
             --topbar-h: 64px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
-        body { display: flex; min-height: 100vh; background: #F0EBE3; }
+        body { display: flex; min-height: 100vh; min-height: 100dvh; background: #F0EBE3; }
 
         /* â”€â”€ TOPBAR â”€â”€ */
         .topbar {
@@ -190,7 +190,7 @@ try {
         .nav-badge { margin-left: auto; background: var(--danger); color: white; font-size: 0.68rem; padding: 2px 7px; border-radius: 20px; font-weight: 800; min-width: 20px; text-align: center; }
 
         /* â”€â”€ MAIN â”€â”€ */
-        .main { margin-left: var(--sidebar-w); flex: 1; padding: 30px 35px; padding-top: calc(var(--topbar-h) + 30px); max-height: 100vh; overflow-y: auto; }
+        .main { margin-left: var(--sidebar-w); flex: 1; padding: 30px 35px; padding-top: calc(var(--topbar-h) + 30px); max-height: 100vh; max-height: 100dvh; overflow-y: auto; }
         .page-header { margin-bottom: 28px; }
         .page-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
         .page-header p { color: var(--gray-600); margin-top: 5px; font-size: 0.92rem; }
@@ -281,7 +281,7 @@ try {
         .slot-block span { display: block; font-weight: 700; }
 
         /* ── DRAWER ── */
-        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .drawer-overlay.open { opacity: 1; pointer-events: auto; }
         .drawer {
             position: fixed; top: 0; right: -490px; width: 475px; height: 100%; background: var(--white);
@@ -293,7 +293,7 @@ try {
         .drawer-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--primary); }
 
         /* ── MODAL ── */
-        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-bg.open { opacity: 1; pointer-events: auto; }
         .modal-box { background: var(--white); border-radius: 20px; padding: 35px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; animation: fadeUp 0.3s ease; }
         .modal-header { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--cream); }
@@ -354,7 +354,8 @@ try {
         }
 
         .sidebar-overlay {
-            display: none !important;
+            opacity: 0;
+            pointer-events: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -362,10 +363,11 @@ try {
             height: 100%;
             background: rgba(0,0,0,0.5);
             z-index: 1040;
-            backdrop-filter: blur(2px);
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .sidebar-overlay.active {
-            display: block !important;
+            opacity: 1;
+            pointer-events: auto;
         }
 
         /* Info Bar */
@@ -486,10 +488,12 @@ try {
             .sidebar {
                 position: fixed;
                 top: 65px;
-                left: -280px;
+                left: 0;
+                transform: translateX(-100%);
                 width: 280px;
-                height: calc(100vh - 65px);
-                transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                bottom: 0;
+                height: auto;
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 box-shadow: 2px 0 10px rgba(0,0,0,0.1);
                 z-index: 1050;
                 justify-content: flex-start !important;
@@ -499,7 +503,7 @@ try {
                 margin-bottom: 25px !important;
                 width: 100%;
             }
-            .sidebar.active { left: 0; }
+            .sidebar.active { transform: translateX(0); }
             .sidebar-logo { display: none; }
             .nav-section-label { padding: 8px 12px 4px; }
             .nav-item { padding: 12px 15px; font-size: 0.9rem; }
@@ -585,15 +589,21 @@ try {
             color: var(--white);
         }
         .nav-category-submenu {
-            display: none;
+            display: flex;
             flex-direction: column;
-            padding: 6px 0 10px 0;
+            padding: 0;
             background: transparent;
             border-radius: 10px;
             margin-top: 4px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .nav-category-wrap.active .nav-category-submenu {
-            display: flex;
+            max-height: 500px;
+            opacity: 1;
+            padding: 6px 0 10px 0;
         }
         .nav-category-wrap.active .nav-category-header {
             background: rgba(229, 169, 59, 0.12);
@@ -1467,6 +1477,10 @@ try {
             <div class="panel-header"><h2>Create Exam Series</h2></div>
             <form onsubmit="createExam(event)">
                 <div class="form-grid">
+                    <div class="form-group">
+                        <label>Curriculum</label>
+                        <select id="ex-curriculum-id" class="form-control" required><option value="">Select Curriculum...</option></select>
+                    </div>
                     <div class="form-group"><label>Exam Series Name</label><input type="text" id="ex-name" class="form-control" required placeholder="e.g. Mid-Term 1 Exams"></div>
                     <div class="form-group"><label>Academic Year</label><input type="text" id="ex-year" class="form-control" required placeholder="e.g. 2026"></div>
                     <div class="form-group"><label>Term Identifier</label><input type="text" id="ex-term" class="form-control" required placeholder="e.g. Term 1"></div>
@@ -1877,6 +1891,7 @@ try {
                     <thead>
                         <tr>
                             <th>#</th>
+                            <th>Curriculum</th>
                             <th>Term Name</th>
                             <th>Start Date</th>
                             <th>End Date</th>
@@ -1885,7 +1900,7 @@ try {
                         </tr>
                     </thead>
                     <tbody id="term-dates-tbody">
-                        <tr><td colspan="6" class="empty-row">Loading term dates…</td></tr>
+                        <tr><td colspan="7" class="empty-row">Loading term dates…</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1897,6 +1912,10 @@ try {
                 </h3>
                 <form onsubmit="saveTermDates(event)" id="term-form">
                     <div class="form-grid">
+                        <div class="form-group">
+                            <label>Curriculum</label>
+                            <select id="term-curriculum-id" class="form-control" required><option value="">Select Curriculum...</option></select>
+                        </div>
                         <div class="form-group">
                             <label>Term Number</label>
                             <select id="term-number" class="form-control" required>
@@ -1943,6 +1962,7 @@ try {
                         <tr>
                             <th>Year</th>
                             <th>Term</th>
+                            <th>Curriculum</th>
                             <th>Term Name</th>
                             <th>Start Date</th>
                             <th>End Date</th>
@@ -1951,7 +1971,7 @@ try {
                         </tr>
                     </thead>
                     <tbody id="all-terms-tbody">
-                        <tr><td colspan="7" class="empty-row">No term dates configured yet.</td></tr>
+                        <tr><td colspan="8" class="empty-row">No term dates configured yet.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -2565,6 +2585,7 @@ function switchTab(id) {
         sidebar.classList.remove('active');
         if (overlay) overlay.classList.remove('active');
         if (icon) icon.className = 'fa-solid fa-bars';
+        document.body.style.overflow = '';
     }
 }
 
@@ -2595,6 +2616,7 @@ function toggleSidebar() {
             if (isActive) icon.className = 'fa-solid fa-xmark';
             else icon.className = 'fa-solid fa-bars';
         }
+        document.body.style.overflow = isActive ? 'hidden' : '';
     }
 }
 
@@ -2676,22 +2698,7 @@ function loadSystemData() {
             if (mcReports) mcReports.textContent = pendingReports;
         }).catch(() => {});
 
-    // Fetch notifications statistics for dashboard message center (unread only for badge)
-    fetch('api/api_notifications.php?action=get_notifications&unread=1')
-        .then(r => r.json())
-        .then(data => {
-            const notifsCount = (data.notifications || []).length;
-            const badgeNotifs = document.getElementById('badge-notifs');
-            const badgeNotifsMobile = document.getElementById('badge-notifs-mobile');
-            const mcNotifs = document.getElementById('mc-notifs-count');
-            
-            if (badgeNotifs) {
-                badgeNotifs.textContent = notifsCount;
-                badgeNotifs.style.display = notifsCount > 0 ? 'inline-block' : 'none';
-            }
-            if (badgeNotifsMobile) badgeNotifsMobile.textContent = notifsCount;
-            if (mcNotifs) mcNotifs.textContent = notifsCount;
-        }).catch(() => {});
+
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -3939,6 +3946,7 @@ function createExam(e) {
     e.preventDefault();
     const fd = new FormData();
     fd.append('action', 'create_exam');
+    fd.append('curriculum_id', document.getElementById('ex-curriculum-id').value);
     fd.append('exam_name', document.getElementById('ex-name').value);
     fd.append('academic_year', document.getElementById('ex-year').value);
     fd.append('term_identifier', document.getElementById('ex-term').value);
@@ -4869,7 +4877,7 @@ function loadAllTermDates() {
             if (allTermsCount) allTermsCount.textContent = `${allTermData.length} term entries`;
             if (allTbody) {
                 if (!allTermData.length) {
-                    allTbody.innerHTML = '<tr><td colspan="7" class="empty-row">No term dates configured yet.</td></tr>';
+                    allTbody.innerHTML = '<tr><td colspan="8" class="empty-row">No term dates configured yet.</td></tr>';
                 } else {
                     allTbody.innerHTML = allTermData.map(t => {
                         const start = new Date(t.start_date);
@@ -4879,6 +4887,7 @@ function loadAllTermDates() {
                         return `<tr>
                             <td><strong>${t.academic_year}</strong></td>
                             <td><span class="badge" style="background:rgba(74,14,23,0.08);color:var(--primary);">Term ${t.term_number}</span></td>
+                            <td><span class="badge" style="background:#E0F2FE;color:#0369A1;">${t.curriculum_name || 'Global / All'}</span></td>
                             <td>${t.term_name}</td>
                             <td>${fmtDate(t.start_date)}</td>
                             <td>${fmtDate(t.end_date)}</td>
@@ -4913,7 +4922,7 @@ function loadTermDates() {
                                 .sort((a,b) => a.term_number - b.term_number);
 
     if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">No terms configured for ${year}. Use the form below to add terms.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No terms configured for ${year}. Use the form below to add terms.</td></tr>`;
         return;
     }
 
@@ -4930,6 +4939,7 @@ function loadTermDates() {
 
         return `<tr>
             <td><strong>Term ${t.term_number}</strong>&nbsp;${statusBadge}</td>
+            <td><span class="badge" style="background:#E0F2FE;color:#0369A1;">${t.curriculum_name || 'Global / All'}</span></td>
             <td>${t.term_name}</td>
             <td>${fmtDate(t.start_date)}</td>
             <td>${fmtDate(t.end_date)}</td>
@@ -4959,6 +4969,7 @@ function saveTermDates(e) {
 
     const fd = new FormData();
     fd.append('action', 'save_term_dates');
+    fd.append('curriculum_id', document.getElementById('term-curriculum-id').value);
     fd.append('academic_year', year);
     fd.append('terms[0][term_number]', number);
     fd.append('terms[0][term_name]', name);
@@ -5021,8 +5032,26 @@ function promptNewYear() {
     showAlert('success', `Academic year ${y.trim()} ready — now add terms using the form below.`);
 }
 
+function populateGlobalCurriculumDropdowns() {
+    fetch('api/api_curriculums.php?action=get_all')
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success' && data.curriculums) {
+                const termDropdown = document.getElementById('term-curriculum-id');
+                const exDropdown = document.getElementById('ex-curriculum-id');
+                let optionsHtml = '<option value="">Select Curriculum...</option>';
+                data.curriculums.forEach(c => {
+                    optionsHtml += `<option value="${c.id}">${c.name}</option>`;
+                });
+                if (termDropdown) termDropdown.innerHTML = optionsHtml;
+                if (exDropdown) exDropdown.innerHTML = optionsHtml;
+            }
+        }).catch(err => console.error('Failed to load global curriculums:', err));
+}
+
 // Init
 window.onload = () => {
+    populateGlobalCurriculumDropdowns();
     updateTopbarDate();
     loadBellNotifications();
     loadSystemData();
@@ -5984,6 +6013,20 @@ function loadBellNotifications() {
         .then(r => r.json())
         .then(data => {
             allNotifications = data.notifications || [];
+
+            // Consolidate badge updates here
+            const unreadCount = allNotifications.length;
+            const badgeNotifs = document.getElementById('badge-notifs');
+            const badgeNotifsMobile = document.getElementById('badge-notifs-mobile');
+            const mcNotifs = document.getElementById('mc-notifs-count');
+
+            if (badgeNotifs) {
+                badgeNotifs.textContent = unreadCount;
+                badgeNotifs.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+            if (badgeNotifsMobile) badgeNotifsMobile.textContent = unreadCount;
+            if (mcNotifs) mcNotifs.textContent = unreadCount;
+
             const list = document.getElementById('notif-bell-list');
             const bell = document.getElementById('notif-bell');
             if (!list) return;
