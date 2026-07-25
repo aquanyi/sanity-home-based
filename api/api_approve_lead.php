@@ -17,12 +17,31 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || ($role 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validate_csrf_token($_POST['csrf_token'] ?? '', true);
+$lead_id = filter_input(INPUT_POST, 'lead_id', FILTER_VALIDATE_INT);
+    $action = $_POST['action'] ?? '';
 
-    $lead_id = filter_input(INPUT_POST, 'lead_id', FILTER_VALIDATE_INT);
+    if (!$lead_id) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid Lead ID.']);
+        exit;
+    }
+
+    // --- HANDLE PERMANENT REJECTION / DELETION ---
+    if ($action === 'reject') {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM enrollment_inquiries WHERE id = ?");
+            $stmt->execute([$lead_id]);
+            echo json_encode(['status' => 'success', 'message' => 'Lead permanently deleted from the system.']);
+        } catch (\PDOException $e) {
+            error_log('[SHTA DELETE LEAD ERROR] ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'Error deleting lead.']);
+        }
+        exit;
+    }
+
+    // --- HANDLE APPROVAL ---
     $custom_email_body = $_POST['email_body'] ?? '';
-
-    if (!$lead_id || empty($custom_email_body)) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid parameters. Lead ID and Email Body are required.']);
+    if (empty($custom_email_body)) {
+        echo json_encode(['status' => 'error', 'message' => 'Email Body is required for approval.']);
         exit;
     }
 

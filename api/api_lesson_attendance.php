@@ -172,7 +172,14 @@ if ($action === 'start_lesson') {
 
             <p style='color:#6C757D;font-size:13px;'>You will receive another email notification with a full session report once the lesson ends.</p>
         ";
-        sendMail($lesson['parent_email'], $parentSubject, $parentBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Attendance', true);
+        // Safe Email Dispatch
+        try {
+            if (function_exists('sendMail')) {
+                @sendMail($lesson['parent_email'], $parentSubject, $parentBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Attendance', true); 
+            }
+        } catch (\Exception $mailEx) {
+            error_log('[SHTA EMAIL DISPATCH WARNING] ' . $mailEx->getMessage());
+        }
 
         // Dispatch Check-In Admin System Notification
         try {
@@ -271,7 +278,14 @@ if ($action === 'verify_otp') {
 
             <p style='color:#6C757D;font-size:13px;'>You will receive another notification with a full session report once the lesson ends.</p>
         ";
-        sendMail($lesson['parent_email'], $parentSubject, $parentBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Attendance', true);
+        // Safe Email Dispatch
+        try {
+            if (function_exists('sendMail')) {
+                @sendMail($lesson['parent_email'], $parentSubject, $parentBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Attendance', true); 
+            }
+        } catch (\Exception $mailEx) {
+            error_log('[SHTA EMAIL DISPATCH WARNING] ' . $mailEx->getMessage());
+        }
 
         // Dispatch Check-In Admin System Notification
         try {
@@ -373,7 +387,14 @@ if ($action === 'end_lesson') {
             <p style='margin-top:20px;color:#6C757D;font-size:13px;'>Thank you for trusting Sanity Homebased Tuition Academy with your child's education.</p>
         ";
 
-        sendMail($lesson['parent_email'], $parentSubject, $parentBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Reports', true);
+        // Safe Email Dispatch
+        try {
+            if (function_exists('sendMail')) {
+                @sendMail($lesson['parent_email'], $parentSubject, $parentBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Reports', true); 
+            }
+        } catch (\Exception $mailEx) {
+            error_log('[SHTA EMAIL DISPATCH WARNING] ' . $mailEx->getMessage());
+        }
 
         // Dispatch Check-Out Admin System Notification
         try {

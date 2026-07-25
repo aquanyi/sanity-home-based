@@ -84,7 +84,7 @@ if ($method === 'POST') {
                     $sName = $slot['student_name'] ? " (lesson with {$slot['student_name']})" : '';
                     echo json_encode([
                         'status'  => 'error',
-                        'message' => "⚠️ Teacher clash: this teacher already has a lesson from {$slot['start_time']} to {$slot['end_time']} on {$day_of_week}{$sName}. Please choose a different time or teacher."
+                        'message' => "⚠️ Schedule Clash Detected: The selected teacher is already booked from {$slot['start_time']} to {$slot['end_time']} on {$day_of_week}{$sName}."
                     ]);
                     exit;
                 }
@@ -106,7 +106,7 @@ if ($method === 'POST') {
                 if ($new_start < $ee && $new_end > $es) {
                     echo json_encode([
                         'status'  => 'error',
-                        'message' => "⚠️ Student clash: this student already has a lesson from {$slot['start_time']} to {$slot['end_time']} on {$day_of_week} with {$slot['teacher_name']}. Please choose a different time or day."
+                        'message' => "⚠️ Schedule Clash Detected: The selected student is already booked from {$slot['start_time']} to {$slot['end_time']} on {$day_of_week} with {$slot['teacher_name']}."
                     ]);
                     exit;
                 }
@@ -165,7 +165,7 @@ if ($method === 'POST') {
                 $ee = strtotime($existing['end_time']);
                 if ($new_start < $ee && $new_end > $es) {
                     $sName = $existing['student_name'] ? " (lesson with {$existing['student_name']})" : '';
-                    echo json_encode(['status' => 'error', 'message' => "⚠️ Teacher clash: teacher already has a lesson from {$existing['start_time']} to {$existing['end_time']} on {$day_of_week}{$sName}."]);
+                    echo json_encode(['status' => 'error', 'message' => "⚠️ Schedule Clash Detected: The selected teacher is already booked from {$existing['start_time']} to {$existing['end_time']} on {$day_of_week}{$sName}."]);
                     exit;
                 }
             }
@@ -181,7 +181,7 @@ if ($method === 'POST') {
                     $es = strtotime($existing['start_time']);
                     $ee = strtotime($existing['end_time']);
                     if ($new_start < $ee && $new_end > $es) {
-                        echo json_encode(['status' => 'error', 'message' => "⚠️ Student clash: student already has a lesson from {$existing['start_time']} to {$existing['end_time']} on {$day_of_week} with {$existing['teacher_name']}."]);
+                        echo json_encode(['status' => 'error', 'message' => "⚠️ Schedule Clash Detected: The selected student is already booked from {$existing['start_time']} to {$existing['end_time']} on {$day_of_week} with {$existing['teacher_name']}."]);
                         exit;
                     }
                 }

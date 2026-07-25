@@ -8,6 +8,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once '../security.php';
 start_secure_session();
 require_once '../db_connect.php';
+require_once '../mail_helper.php';
 
 // Auth Guard - Authenticated users only
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
@@ -90,6 +91,30 @@ if ($method === 'GET') {
         exit;
     }
 
+    if ($action === 'get_users_by_role') {
+        $role = $_GET['role'] ?? '';
+        $table_map = [
+            'admin'      => 'admins',
+            'timetabler' => 'timetablers',
+            'teacher'    => 'teachers',
+            'parent'     => 'parents',
+            'student'    => 'students',
+            'accounts'   => 'accounts_officers'
+        ];
+        $tbl = $table_map[$role] ?? '';
+        if (!$tbl) {
+            echo json_encode(['status' => 'success', 'users' => []]);
+            exit;
+        }
+        try {
+            $stmt = $pdo->query("SELECT id, name, email FROM `$tbl` ORDER BY name ASC");
+            echo json_encode(['status' => 'success', 'users' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     if ($action === 'get_parent_teachers') {
         $role   = $_SESSION['user_role'] ?? '';
         $userId = (int)($_SESSION['user_id'] ?? 0);
@@ -137,6 +162,27 @@ if ($method === 'POST') {
         exit;
     }
 
+    if ($action === 'clear_all' || $action === 'mark_all_read') {
+        $role     =$_SESSION['user_role'] ?? '';
+        $userId   = (int)($_SESSION['user_id'] ?? 0);
+        $userName =$_SESSION['user_name'] ?? '';
+        
+        try {
+            $stmt =$pdo->prepare("
+                DELETE FROM system_notifications 
+                WHERE recipient_role = 'all' 
+                   OR (recipient_role = ? AND (recipient_user_id IS NULL OR recipient_user_id = ?))
+                   OR sender_id = ? 
+                   OR sender_name LIKE ?
+            ");
+            $stmt->execute([$role,$userId, $userId, '%' .$userName . '%']);
+            echo json_encode(['status' => 'success', 'message' => 'All notifications permanently cleared.']);
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     if ($action === 'send_notification') {
         // Validate CSRF token if provided
         if (isset($_POST['csrf_token'])) {
@@ -148,7 +194,8 @@ if ($method === 'POST') {
         $sender_name = ($_SESSION['user_name'] ?? 'User') . ' (' . ucfirst($sender_role) . ')';
 
         $recipient_role    = trim($_POST['recipient_role'] ?? 'all');
-        $recipient_user_id = filter_input(INPUT_POST, 'recipient_user_id', FILTER_VALIDATE_INT) ?: null;
+        $target_user_id    = trim($_POST['target_user_id'] ?? 'all');
+        $recipient_user_id = ($target_user_id !== 'all' && is_numeric($target_user_id)) ? (int)$target_user_id : (filter_input(INPUT_POST, 'recipient_user_id', FILTER_VALIDATE_INT) ?: null);
         $title             = trim($_POST['title'] ?? '');
         $message           = trim($_POST['message'] ?? '');
 
@@ -184,12 +231,79 @@ if ($method === 'POST') {
         }
 
         try {
-            $stmt = $pdo->prepare("
+            // 1. Insert into database for portal dashboard viewing
+            $stmt =$pdo->prepare("
                 INSERT INTO system_notifications (sender_id, sender_name, recipient_role, recipient_user_id, title, message)
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$sender_id, $sender_name, $recipient_role, $recipient_user_id, $title, $message]);
-            echo json_encode(['status' => 'success', 'message' => 'Message dispatched successfully!']);
+            $stmt->execute([$sender_id,$sender_name, $recipient_role,$recipient_user_id, $title,$message]);
+
+            // 2. Dispatch Email Notification(s) with Safe Exception Trapping
+            try {
+                $emailRecipients = [];
+
+                if ($recipient_user_id) {
+                    $table_map = [                         'admin'             => 'admins',                         'timetabler'        => 'timetablers',                         'teacher'           => 'teachers',                         'parent'            => 'parents',                         'student'           => 'students',                         'accounts'          => 'accounts_officers',                         'accounts_officer'  => 'accounts_officers'                     ];$targetTable = $table_map[$recipient_role] ?? '';
+                    if ($targetTable) {
+                        try {
+                            $uStmt =$pdo->prepare("SELECT email, name FROM `$targetTable` WHERE id = ?");
+                            $uStmt->execute([$recipient_user_id]);
+                            $userRow =$uStmt->fetch(PDO::FETCH_ASSOC);
+                            if ($userRow && !empty($userRow['email'])) {
+                                $emailRecipients[] =$userRow;
+                            }
+                        } catch (\Exception $ex) {}
+                    }
+                    
+                    // Fallback search if empty
+                    if (empty($emailRecipients)) {$fallbackTables = ['admins', 'timetablers', 'teachers', 'parents', 'students', 'accounts_officers'];
+                        foreach ($fallbackTables as$tbl) {
+                            try {
+                                $uStmt =$pdo->prepare("SELECT email, name FROM `$tbl` WHERE id = ?");
+                                $uStmt->execute([$recipient_user_id]);
+                                $userRow =$uStmt->fetch(PDO::FETCH_ASSOC);
+                                if ($userRow && !empty($userRow['email'])) {
+                                    $emailRecipients[] =$userRow;
+                                    break;
+                                }
+                            } catch (\Exception $e2) {}
+                        }
+                    }
+                } else {
+                    // Group broadcast logic...
+                    $tables = ($recipient_role === 'all') 
+                        ? ['admins', 'timetablers', 'teachers', 'parents', 'students', 'accounts_officers']
+                        : [$table_map[$recipient_role] ?? $recipient_role];
+
+                    foreach ($tables as$tbl) {
+                        try {
+                            $allRows =$pdo->query("SELECT email, name FROM `$tbl` WHERE email IS NOT NULL AND email != ''")->fetchAll(PDO::FETCH_ASSOC);
+                            foreach ($allRows as$r) {
+                                $emailRecipients[] =$r;
+                            }
+                        } catch (\Exception $ex) {}
+                    }
+                }
+
+                // Deduplicate and send
+                $uniqueEmails = [];
+                foreach ($emailRecipients as$rec) {
+                    $em = strtolower(trim($rec['email'] ?? ''));
+                    if (!empty($em) && !isset($uniqueEmails[$em])) {$uniqueEmails[$em] =$rec['name'] ?? 'User';
+                    }
+                }
+
+                foreach ($uniqueEmails as $emAddress =>$emName) {
+                    if (function_exists('sendMail')) {
+                        $emailBody = "<p>Dear <strong>" . htmlspecialchars($emName) . "</strong>,</p><p>You have received a new notification from <strong>" . htmlspecialchars($sender_name) . "</strong>:</p><div style='background:#FAF7F2; padding:15px; border-left:4px solid #4A0E17; margin:15px 0;'><h3>" . htmlspecialchars($title) . "</h3><p>" . nl2br(htmlspecialchars($message)) . "</p></div>";
+                        @sendMail($emAddress, $title,$emailBody, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Notifications', true);
+                    }
+                }
+            } catch (\Exception $mailEx) {
+                error_log('[SHTA EMAIL DISPATCH WARNING] ' . $mailEx->getMessage());
+            }
+
+            echo json_encode(['status' => 'success', 'message' => 'Message dispatched successfully to portal and email inbox!']);
         } catch (\PDOException $e) {
             error_log('[SHTA NOTIFICATION WRITE ERROR] ' . $e->getMessage());
             echo json_encode(['status' => 'error', 'message' => 'Failed to dispatch message.']);

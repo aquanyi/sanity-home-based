@@ -291,8 +291,13 @@ if ($method === 'POST' && $action === 'delete_user') {
         exit;
     }
 
-    try {
+try {
         $pdo->beginTransaction();
+
+        // Fetch the user's email first so we can use it for universal staging cleanup later
+        $getEmailStmt = $pdo->prepare("SELECT email FROM `$table` WHERE id = ?");
+        $getEmailStmt->execute([$targetUserId]);
+        $targetUserEmail = $getEmailStmt->fetchColumn();
 
         // 1. TEACHER DELETION
         if ($role === 'teacher') {
@@ -374,6 +379,12 @@ if ($method === 'POST' && $action === 'delete_user') {
         // Delete from specific role table
         $stmt = $pdo->prepare("DELETE FROM `$table` WHERE id = ?");
         $stmt->execute([$targetUserId]);
+
+        // 4. UNIVERSAL STAGING & QUEUE CLEANUP (Prevents duplicate email blocking for all roles)
+        if (!empty($targetUserEmail)) {
+            $pdo->prepare("DELETE FROM pending_teachers WHERE email = ?")->execute([$targetUserEmail]);
+            $pdo->prepare("DELETE FROM enrollment_inquiries WHERE parent_email = ?")->execute([$targetUserEmail]);
+        }
 
         // Clean up legacy users table if present
         try {

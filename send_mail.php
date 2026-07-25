@@ -21,7 +21,7 @@ if (!defined('SMTP_HOST')) {
  */
 function sendSystemEmail($toEmail, $toName, $subject, $bodyHtml, $fromEmail = null, $fromName = null, $attachments = [], $bccArray = []) {
     $mail = new PHPMailer(true);
-
+    $mail->CharSet = 'UTF-8';
     $senderEmail = $fromEmail ? $fromEmail : (defined('SMTP_USER') ? SMTP_USER : 'admin@sanityeducation.com');
     $senderName  = $fromName ? $fromName : (defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'Sanity Education');
 
@@ -92,6 +92,7 @@ function sendSystemEmail($toEmail, $toName, $subject, $bodyHtml, $fromEmail = nu
         // ── Fallback 1: Try Port 587 STARTTLS ──
         try {
             $mail587 = new PHPMailer(true);
+            $mail587->CharSet = 'UTF-8';
             $mail587->isSMTP();
             $mail587->Host       = (defined('SMTP_HOST') ? SMTP_HOST : 'localhost') . ';localhost';
             $mail587->SMTPAuth   = true;
@@ -139,6 +140,7 @@ function sendSystemEmail($toEmail, $toName, $subject, $bodyHtml, $fromEmail = nu
             // ── Fallback 2: Try cPanel Local sendmail / mail() ──
             try {
                 $mailFallback = new PHPMailer(true);
+                $mailFallback->CharSet = 'UTF-8';
                 $mailFallback->isMail();
                 $mailFallback->setFrom($senderEmail, $senderName);
                 $mailFallback->addAddress($toEmail, $toName);

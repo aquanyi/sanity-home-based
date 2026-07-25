@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * parent_portal.php
  * Portal interface for Parents to track reports, resource materials, and edit profile details.
@@ -599,7 +599,10 @@ session_write_close();
         <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
                 <h2><i class="fa-solid fa-envelope-open-text" style="color:var(--accent);"></i> Message Feed &amp; System Notifications</h2>
-                <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh Feed</button>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh Feed</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllNotifications()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                </div>
             </div>
             <div class="table-wrap">
                 <table style="width:100%;">
@@ -702,11 +705,24 @@ session_write_close();
 <script>
 const CSRF_TOKEN = '<?= $csrf_token ?>';
 const originalFetch = window.fetch;
-window.fetch = function(url, options) {
+window.fetch = async function(url, options) {
     if (options && options.method && options.method.toUpperCase() === 'POST' && options.body instanceof FormData) {
         options.body.append('csrf_token', CSRF_TOKEN);
     }
-    return originalFetch(url, options);
+    const response = await originalFetch(url, options);
+    if (response.status === 401) {
+        window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#parent';
+        return response;
+    }
+    const clone = response.clone();
+    try {
+        const data = await clone.json();
+        if (data && data.message === 'session_expired') {
+            window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#parent';
+            return response;
+        }
+    } catch (e) {}
+    return response;
 };
 
 function switchTab(id) {
@@ -990,6 +1006,28 @@ function loadNotifications() {
         });
 }
 
+function clearAllNotifications() {
+    if (!confirm('Are you sure you want to permanently clear all notifications?')) return;
+
+    const fd = new FormData();
+    fd.append('action', 'clear_all');
+    
+    fetch('api/api_notifications.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (typeof showAlert === 'function') {
+                showAlert(data.status, data.message);
+            } else {
+                alert(data.message);
+            }
+            if (data.status === 'success') {
+                if (typeof loadNotifications === 'function') loadNotifications();
+                if (typeof loadBellNotifications === 'function') loadBellNotifications();
+            }
+        })
+        .catch(() => alert('Failed to clear notifications.'));
+}
+
 function loadParentStudentsTab() {
     const tbody = document.getElementById('parent-students-tbody');
     if (!tbody) return;
@@ -1074,10 +1112,10 @@ function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
         if (!btn.hasAttribute('data-original-html')) {
             btn.setAttribute('data-original-html', btn.innerHTML);
         }
-        btn.disabled = True;
-        btn.innerHTML = <i class="fa-solid fa-spinner fa-spin"></i> ;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + loadingText;
     } else {
-        btn.disabled = False;
+        btn.disabled = false;
         if (btn.hasAttribute('data-original-html')) {
             btn.innerHTML = btn.getAttribute('data-original-html');
         }

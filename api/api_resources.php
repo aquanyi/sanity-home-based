@@ -91,6 +91,14 @@ try {
     if (!$checkResImage) {
         $pdo->exec("ALTER TABLE learning_resources ADD COLUMN cover_image VARCHAR(255) NULL;");
     }
+
+    $checkCat =$pdo->query("SHOW COLUMNS FROM learning_resources LIKE 'resource_category'")->fetch();
+    if (!$checkCat)$pdo->exec("ALTER TABLE learning_resources ADD COLUMN resource_category VARCHAR(50) DEFAULT 'academic';");
+
+    $checkAcc =$pdo->query("SHOW COLUMNS FROM learning_resources LIKE 'access_type'")->fetch();
+    if (!$checkAcc)$pdo->exec("ALTER TABLE learning_resources ADD COLUMN access_type VARCHAR(50) DEFAULT 'free';");
+
+    $pdo->exec("ALTER TABLE learning_resources MODIFY subject VARCHAR(100) NULL, MODIFY grade_level VARCHAR(50) NULL;");
 } catch (\PDOException $e) {}
 
 
@@ -223,9 +231,14 @@ if ($action === 'upload_resource' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $grade_level   = trim($_POST['grade_level'] ?? '');
     $material_type = trim($_POST['material_type'] ?? 'other');
     $uploaded_by   = filter_input(INPUT_POST, 'uploaded_by', FILTER_VALIDATE_INT) ?: 1;
+    $resource_category = trim($_POST['resource_category'] ?? 'academic');
+    $access_type = trim($_POST['access_type'] ?? 'free');
 
-    if (!$title || !$description || !$subject || !$grade_level) {
-        echo json_encode(['status' => 'error', 'message' => 'All classification fields are required.']); exit;
+    if (!$title || !$description) {
+        echo json_encode(['status' => 'error', 'message' => 'Title and description are required.']); exit;
+    }
+    if ($resource_category === 'academic' && (!$subject || !$grade_level)) {
+        echo json_encode(['status' => 'error', 'message' => 'Subject and Grade Level are required for academic materials.']); exit;
     }
 
     if (!isset($_FILES['resource_file']) || $_FILES['resource_file']['error'] !== UPLOAD_ERR_OK) {
@@ -268,10 +281,10 @@ if ($action === 'upload_resource' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO learning_resources (title, description, file_path, file_type, subject, grade_level, material_type, uploaded_by, cover_image)
-            VALUES (?,?,?,?,?,?,?,?,?)
+            INSERT INTO learning_resources (title, description, file_path, file_type, subject, grade_level, material_type, uploaded_by, cover_image, resource_category, access_type)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
         ");
-        $stmt->execute([$title, $description, $dbFilePath, $ext, $subject, $grade_level, $material_type, $uploaded_by, $dbCoverImagePath]);
+        $stmt->execute([$title, $description, $dbFilePath, $ext, $subject, $grade_level, $material_type, $uploaded_by, $dbCoverImagePath, $resource_category, $access_type]);
         echo json_encode(['status' => 'success', 'message' => "Resource '{$title}' uploaded successfully.", 'resource_id' => $pdo->lastInsertId()]);
     } catch (\PDOException $e) {
         @unlink($filePath);
@@ -292,14 +305,19 @@ if ($action === 'edit_resource' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $subject       = trim($_POST['subject'] ?? '');
     $grade_level   = trim($_POST['grade_level'] ?? '');
     $material_type = trim($_POST['material_type'] ?? 'other');
+    $resource_category = trim($_POST['resource_category'] ?? 'academic');
+    $access_type = trim($_POST['access_type'] ?? 'free');
 
-    if (!$resource_id || !$title || !$description || !$subject || !$grade_level) {
-        echo json_encode(['status' => 'error', 'message' => 'All fields are required.']); exit;
+    if (!$resource_id || !$title || !$description) {
+        echo json_encode(['status' => 'error', 'message' => 'ID, title and description are required.']); exit;
+    }
+    if ($resource_category === 'academic' && (!$subject || !$grade_level)) {
+        echo json_encode(['status' => 'error', 'message' => 'Subject and Grade Level are required for academic materials.']); exit;
     }
 
     try {
-        $sql = "UPDATE learning_resources SET title = ?, description = ?, subject = ?, grade_level = ?, material_type = ?";
-        $params = [$title, $description, $subject, $grade_level, $material_type];
+        $sql = "UPDATE learning_resources SET title = ?, description = ?, subject = ?, grade_level = ?, material_type = ?, resource_category = ?, access_type = ?";
+        $params = [$title, $description, $subject, $grade_level, $material_type, $resource_category, $access_type];
 
         // Optional new file upload
         if (isset($_FILES['resource_file']) && $_FILES['resource_file']['error'] === UPLOAD_ERR_OK) {

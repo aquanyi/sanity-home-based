@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 header('Content-Type: text/html; charset=utf-8');
 /**
  * teacher_portal.php
@@ -497,6 +497,7 @@ session_write_close();
         <div class="nav-category-submenu">
             <a href="javascript:void(0)" onclick="switchTab('classes')" class="submenu-item">My Lessons &amp; Attendance</a>
             <a href="javascript:void(0)" onclick="switchTab('timetable')" class="submenu-item">Weekly Timetable</a>
+            <a href="javascript:void(0)" onclick="switchTab('ledger')" class="submenu-item">My Session Ledger</a>
         </div>
     </div>
 
@@ -547,9 +548,8 @@ session_write_close();
                 <i class="fa-solid fa-bell"></i>
                 <span class="info-badge-count" id="badge-bell-notifs">0</span>
             </div>
-            <div class="info-badge-item" onclick="switchTab('timetable')" title="System Status">
+            <div class="info-badge-item" onclick="switchTab('timetable')" title="Weekly Timetable">
                 <i class="fa-solid fa-calendar-days"></i>
-                <span class="info-badge-count">1</span>
             </div>
         </div>
     </div>
@@ -646,7 +646,10 @@ session_write_close();
         <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
                 <h2><i class="fa-solid fa-envelope-open-text" style="color:var(--accent);"></i> Message Feed &amp; System Notifications</h2>
-                <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh Feed</button>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh Feed</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllNotifications()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                </div>
             </div>
             <div id="notif-feed">
                 <div class="no-data-msg">Loading notifications…</div>
@@ -666,6 +669,64 @@ session_write_close();
         </div>
     </div>
 
+    <!-- SESSION LEDGER -->
+    <div id="section-ledger" class="section">
+        <div class="page-header">
+            <h1>Session Ledger</h1>
+            <p>View and export your completed lesson sessions and check-in history.</p>
+        </div>
+        <div class="panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-book-journal-whills" style="color:var(--accent);"></i> My Session Log</h2>
+                <button class="btn btn-outline btn-sm" onclick="exportLedgerCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            </div>
+            
+            <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="form-group" style="min-width:180px;">
+                    <label>Filter by Month</label>
+                    <input type="month" id="ledger-month" class="form-control" onchange="renderSessionLedger()">
+                </div>
+                <div class="form-group" style="min-width:160px;">
+                    <label>Date From</label>
+                    <input type="date" id="ledger-from" class="form-control" onchange="renderSessionLedger()">
+                </div>
+                <div class="form-group" style="min-width:160px;">
+                    <label>Date To</label>
+                    <input type="date" id="ledger-to" class="form-control" onchange="renderSessionLedger()">
+                </div>
+                <div class="form-group" style="min-width:160px;">
+                    <label>Status</label>
+                    <select id="ledger-status" class="form-control" onchange="renderSessionLedger()">
+                        <option value="">All Statuses</option>
+                        <option value="completed" selected>Completed ✓</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="scheduled">Scheduled</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline" onclick="resetLedgerFilters()" style="margin-bottom:2px;"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Student</th>
+                            <th>Subject</th>
+                            <th>Venue</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledger-tbody">
+                        <tr><td colspan="7" class="empty-row">Loading ledger...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- WEEKLY TIMETABLE -->
     <div id="section-timetable" class="section">
         <div class="panel">
@@ -673,7 +734,7 @@ session_write_close();
                 <h2>My Weekly Timetable</h2>
                 <div style="display:flex;gap:10px;align-items:center;">
                     <div style="font-size:0.85rem;color:var(--gray-600);font-weight:600;"><i class="fa-solid fa-circle-info"></i> Recurring weekly slots</div>
-                    <button class="btn btn-sm btn-outline" onclick="printMyTimetable()"><i class="fa-solid fa-print"></i> Print My Timetable</button>
+                    <button class="btn btn-sm btn-outline" onclick="printMyTimetable()"><i class="fa-solid fa-file-pdf"></i> Download Timetable</button>
                 </div>
             </div>
             <div class="tt-grid">
@@ -876,11 +937,28 @@ session_write_close();
 <script>
 const CSRF_TOKEN = '<?= $csrf_token ?>';
 const originalFetch = window.fetch;
-window.fetch = function(url, options) {
+window.fetch = async function(url, options) {
     if (options && options.method && options.method.toUpperCase() === 'POST' && options.body instanceof FormData) {
         options.body.append('csrf_token', CSRF_TOKEN);
     }
-    return originalFetch(url, options);
+    
+    const response = await originalFetch(url, options);
+    
+    if (response.status === 401) {
+        window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#teachers';
+        return response;
+    }
+    
+    const clone = response.clone();
+    try {
+        const data = await clone.json();
+        if (data && data.message === 'session_expired') {
+            window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#teachers';
+            return response;
+        }
+    } catch (e) {}
+    
+    return response;
 };
 
 const teacherId = <?php echo $_SESSION['user_id']; ?>;
@@ -918,6 +996,7 @@ function switchTab(id) {
     if (id === 'dashboard') loadDashboardStats();
     if (id === 'classes') loadLessons();
     if (id === 'timetable') loadWeeklyTimetable();
+    if (id === 'ledger') loadSessionLedger();
     if (id === 'exams') loadTeacherExams();
     if (id === 'reports') loadStudentsDropdown();
     if (id === 'notifications') loadNotifications();
@@ -995,8 +1074,6 @@ function loadTeacherExams() {
                 const sel = document.getElementById(id);
                 if (sel) sel.innerHTML = '<option value="">Error loading data.</option>';
             });
-        });
-});
         });
 }
 
@@ -1245,7 +1322,7 @@ function loadWeeklyTimetable() {
                             <div class="tt-details">
                                 <strong>${s.student_name}</strong> <span style="background:rgba(229,169,59,0.2);color:#B45309;padding:1px 6px;border-radius:8px;font-size:0.68rem;font-weight:700;">${adm}</span><br>
                                 <span style="font-size:0.7rem;color:var(--primary);font-weight:700;">${venueIcon} ${venueLabel}</span>
-                                ${s.subject_names ? `<br><small style="color:var(--gray-600);font-size:0.68rem;">📚 ${s.subject_names}</small>` : ''}
+                                ${(s.subject_name || s.subject) ? `<br><small style="color:var(--gray-600);font-size:0.68rem;">📚 ${s.subject_name || s.subject}</small>` : ''}
                                 ${s.student_address ? `<br><small style="color:var(--gray-600);font-size:0.68rem;">📍 ${s.student_address}</small>` : ''}
                             </div>
                         </div>`;
@@ -1272,7 +1349,7 @@ function printMyTimetable() {
             <td>${s.day_of_week}</td>
             <td>${s.start_time?.slice(0,5)} – ${s.end_time?.slice(0,5)}</td>
             <td>${s.student_name}</td>
-            <td>${s.subject_names || '—'}</td>
+            <td>${s.subject_name || s.subject || '—'}</td>
             <td>${venueLabel}</td>
             <td>${s.student_address || '—'}</td>
         </tr>`;
@@ -1302,7 +1379,7 @@ function printMyTimetable() {
         </div>
         <table style="margin-bottom:12px;width:60%;font-size:13px;border-collapse:collapse;">
             <tr><td style="background:#FAF7F2;font-weight:700;padding:6px 10px;border:1px solid #e2e8f0;">Teacher Name:</td><td style="padding:6px 10px;border:1px solid #e2e8f0;">${teacherName}</td></tr>
-            <tr><td style="background:#FAF7F2;font-weight:700;padding:6px 10px;border:1px solid #e2e8f0;">Printed On:</td><td style="padding:6px 10px;border:1px solid #e2e8f0;">${new Date().toDateString()}</td></tr>
+            <tr><td style="background:#FAF7F2;font-weight:700;padding:6px 10px;border:1px solid #e2e8f0;">Downloaded On:</td><td style="padding:6px 10px;border:1px solid #e2e8f0;">${new Date().toDateString()}</td></tr>
         </table>
         <table>
             <thead><tr><th>Day</th><th>Time</th><th>Student</th><th>Subject</th><th>Venue</th><th>Location / Address</th></tr></thead>
@@ -1314,7 +1391,7 @@ function printMyTimetable() {
         </div>
         <br>
         <div style="text-align:center;">
-            <button onclick="window.print()" style="padding:10px 25px;background:#4A0E17;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:700;">🖨 Print / Save as PDF</button>
+            <button onclick="window.print()" style="padding:10px 25px;background:#4A0E17;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:700;"><i class="fa-solid fa-download"></i> Download / Save as PDF</button>
         </div>
     </body></html>`);
     win.document.close();
@@ -1327,6 +1404,10 @@ function showAlert(type, msg) {
     const el = document.getElementById('globalAlert');
     el.className = `alert alert-${type}`; el.innerHTML = msg; el.style.display = 'block';
     setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function showGlobalAlert(msg, type = 'info') {
+    showAlert(type, msg);
 }
 function loadLessons() {
     fetch('api/api_lesson_attendance.php?action=fetch_teacher_lessons&teacher_id=' + teacherId)
@@ -1354,7 +1435,7 @@ function loadLessons() {
 
                 tbody.innerHTML += `<tr>
                     <td>${timeHtml}</td>
-                    <td><strong>${l.student_name}</strong><br><small style="color:var(--gray-600);font-size:0.75rem;">📚 ${l.subject_names || 'No Subjects'}</small></td>
+                    <td><strong>${l.student_name}</strong><br><small style="color:var(--gray-600);font-size:0.75rem;">📚 ${l.subject_name || l.subject || 'No Subject'}</small></td>
                     <td>${l.parent_phone}</td>
                     <td>${l.venue_type === 'home_visit' ? '🏡 Home' : '🏫 School'}</td>
                     <td><span class="badge badge-${l.session_status}">${l.session_status.toUpperCase()}</span></td>
@@ -1748,6 +1829,28 @@ function sendTeacherMessage(e) {
         });
 }
 
+function clearAllNotifications() {
+    if (!confirm('Are you sure you want to permanently clear all notifications?')) return;
+
+    const fd = new FormData();
+    fd.append('action', 'clear_all');
+    
+    fetch('api/api_notifications.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (typeof showAlert === 'function') {
+                showAlert(data.status, data.message);
+            } else {
+                alert(data.message);
+            }
+            if (data.status === 'success') {
+                if (typeof loadNotifications === 'function') loadNotifications();
+                if (typeof loadBellNotifications === 'function') loadBellNotifications();
+            }
+        })
+        .catch(() => alert('Failed to clear notifications.'));
+}
+
 function formatNotifDate(dt) {
     if (!dt) return '';
     const d = new Date(dt);
@@ -1767,10 +1870,10 @@ function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
         if (!btn.hasAttribute('data-original-html')) {
             btn.setAttribute('data-original-html', btn.innerHTML);
         }
-        btn.disabled = True;
-        btn.innerHTML = <i class="fa-solid fa-spinner fa-spin"></i> ;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + loadingText;
     } else {
-        btn.disabled = False;
+        btn.disabled = false;
         if (btn.hasAttribute('data-original-html')) {
             btn.innerHTML = btn.getAttribute('data-original-html');
         }
@@ -1794,6 +1897,116 @@ function openAddStudentModal() {
 
 function piDoPrint() {
     window.print();
+}
+
+let teacherLedgerData = [];
+
+function loadSessionLedger() {
+    const tbody = document.getElementById('ledger-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Fetching records...</td></tr>';
+    
+    fetch('api/api_lesson_attendance.php?action=fetch_teacher_lessons&teacher_id=' + teacherId)
+        .then(r => r.json())
+        .then(data => {
+            teacherLedgerData = data.lessons || [];
+            renderSessionLedger();
+        })
+        .catch(() => {
+            if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-row" style="color:red;">Failed to load records.</td></tr>';
+        });
+}
+
+function renderSessionLedger() {
+    const tbody = document.getElementById('ledger-tbody');
+    if (!tbody) return;
+
+    const month = document.getElementById('ledger-month')?.value; // YYYY-MM
+    const fromDate = document.getElementById('ledger-from')?.value;
+    const toDate = document.getElementById('ledger-to')?.value;
+    const status = document.getElementById('ledger-status')?.value;
+
+    const filtered = teacherLedgerData.filter(l => {
+        if (status && l.session_status !== status) return false;
+        if (month && !l.lesson_date.startsWith(month)) return false;
+        if (fromDate && l.lesson_date < fromDate) return false;
+        if (toDate && l.lesson_date > toDate) return false;
+        return true;
+    });
+
+    if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-row">No sessions found for the selected filters.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(l => {
+        let timeHtml = `${l.start_time.slice(0,5)} - ${l.end_time.slice(0,5)}`;
+        let checkIn = l.check_in_time ? new Date(l.check_in_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—';
+        let checkOut = l.check_out_time ? new Date(l.check_out_time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—';
+        let statusBadge = l.session_status === 'completed' ? 'badge-published' : (l.session_status === 'in_progress' ? 'badge-pending-grade' : 'badge');
+        let subjectDisplay = l.subject_name || l.subject || 'N/A';
+        
+        return `<tr>
+            <td><strong>${l.lesson_date}</strong><br><small style="color:var(--gray-600);">${timeHtml}</small></td>
+            <td><strong>${l.student_name}</strong></td>
+            <td><span style="background:rgba(74,14,23,0.08);color:var(--primary);padding:3px 10px;border-radius:12px;font-size:0.8rem;font-weight:700;">${subjectDisplay}</span></td>
+            <td>${l.venue_type === 'home_visit' ? '🏡 Home' : '🏫 School'}</td>
+            <td style="color:var(--success);font-weight:600;">${checkIn}</td>
+            <td style="color:var(--danger);font-weight:600;">${checkOut}</td>
+            <td><span class="badge ${statusBadge}">${l.session_status.toUpperCase()}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function resetLedgerFilters() {
+    if(document.getElementById('ledger-month')) document.getElementById('ledger-month').value = '';
+    if(document.getElementById('ledger-from')) document.getElementById('ledger-from').value = '';
+    if(document.getElementById('ledger-to')) document.getElementById('ledger-to').value = '';
+    if(document.getElementById('ledger-status')) document.getElementById('ledger-status').value = 'completed';
+    renderSessionLedger();
+}
+
+function exportLedgerCSV() {
+    const month = document.getElementById('ledger-month')?.value;
+    const fromDate = document.getElementById('ledger-from')?.value;
+    const toDate = document.getElementById('ledger-to')?.value;
+    const status = document.getElementById('ledger-status')?.value;
+
+    const filtered = teacherLedgerData.filter(l => {
+        if (status && l.session_status !== status) return false;
+        if (month && !l.lesson_date.startsWith(month)) return false;
+        if (fromDate && l.lesson_date < fromDate) return false;
+        if (toDate && l.lesson_date > toDate) return false;
+        return true;
+    });
+
+    if (!filtered.length) {
+        showAlert('error', 'No records to export.');
+        return;
+    }
+
+    const rows = [['Date', 'Start Time', 'End Time', 'Student', 'Subject', 'Venue', 'Check-In', 'Check-Out', 'Status']];
+    filtered.forEach(l => {
+        rows.push([
+            l.lesson_date,
+            l.start_time.slice(0,5),
+            l.end_time.slice(0,5),
+            l.student_name,
+            l.subject_name || l.subject || '',
+            l.venue_type === 'home_visit' ? 'Home' : 'School',
+            l.check_in_time || '',
+            l.check_out_time || '',
+            l.session_status
+        ]);
+    });
+
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `my_session_ledger_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 </script>
 </body>

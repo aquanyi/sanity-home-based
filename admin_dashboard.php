@@ -11,8 +11,10 @@ if (!in_array($_SESSION['user_role'] ?? '', ['admin', 'timetabler'])) {
     header('Location: login.html?error=Access+Denied:+Admin+credentials+required#admin');
     exit;
 }
-$is_admin = true; // Enabled all features for admin console users
-$is_timetabler = ($_SESSION['user_role'] ?? '') === 'timetabler';
+$role =$_SESSION['user_role'] ?? '';
+$is_admin = ($role === 'admin');
+$is_timetabler = ($role === 'timetabler');
+$is_management = in_array($role, ['admin', 'timetabler']);
 
 // Generate CSRF token and save it in the session before closing the session
 $csrf_token = generate_csrf_token();
@@ -490,6 +492,12 @@ try {
                 transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 box-shadow: 2px 0 10px rgba(0,0,0,0.1);
                 z-index: 1050;
+                justify-content: flex-start !important;
+            }
+            .sidebar-signout-wrap {
+                margin-top: 15px !important;
+                margin-bottom: 25px !important;
+                width: 100%;
             }
             .sidebar.active { left: 0; }
             .sidebar-logo { display: none; }
@@ -752,7 +760,7 @@ try {
         <div class="u-role"><?php echo strtoupper($_SESSION['user_role'] ?? 'ADMIN'); ?></div>
     </div>
 
-    <?php if ($is_admin): ?>
+    <?php if ($is_management): ?>
         <!-- Overview -->
         <div class="nav-category-wrap">
             <div class="nav-category-header" onclick="toggleCategoryMenu(this)">
@@ -761,10 +769,15 @@ try {
                 
             </div>
             <div class="nav-category-submenu">
+                <?php if ($is_admin): ?>
                 <a href="javascript:void(0)" onclick="switchTab('dashboard')" class="submenu-item">Dashboard</a>
                 <a href="javascript:void(0)" onclick="switchTab('leads')" class="submenu-item">New Applications <span class="nav-badge" id="badge-leads">0</span></a>
+                <?php endif; ?>
                 <a href="javascript:void(0)" onclick="switchTab('users-dir')" class="submenu-item">User Directory</a>
+                <a href="javascript:void(0)" onclick="switchTab('contract-payroll')" class="submenu-item"><i class="fa-solid fa-file-contract"></i> Contract Payroll</a>
+                <?php if ($is_admin): ?>
                 <a href="javascript:void(0)" onclick="switchTab('roles')" class="submenu-item">Role Management</a>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -781,7 +794,9 @@ try {
                 <a href="javascript:void(0)" onclick="switchTab('exams')" class="submenu-item">Exams</a>
                 <a href="javascript:void(0)" onclick="switchTab('reports')" class="submenu-item">Reports <span class="nav-badge" id="badge-reports">0</span></a>
                 <a href="javascript:void(0)" onclick="switchTab('library')" class="submenu-item">Resources</a>
+                <?php if ($is_admin): ?>
                 <a href="javascript:void(0)" onclick="switchTab('curriculums')" class="submenu-item">Curriculums</a>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -805,9 +820,13 @@ try {
                 
             </div>
             <div class="nav-category-submenu">
-                <a href="accounts_dashboard.php" class="submenu-item">Accounts</a>
+                <?php if ($is_admin): ?>
+                <a href="accounts_dashboard.php?fresh=1" class="submenu-item">Accounts</a>
+                <?php endif; ?>
                 <a href="javascript:void(0)" onclick="switchTab('profile')" class="submenu-item">My Profile</a>
+                <?php if ($is_admin): ?>
                 <a href="javascript:void(0)" onclick="switchTab('settings')" class="submenu-item">Settings</a>
+                <?php endif; ?>
             </div>
         </div>
     <?php else: ?>
@@ -820,6 +839,7 @@ try {
             </div>
             <div class="nav-category-submenu">
                 <a href="javascript:void(0)" onclick="switchTab('timetable')" class="submenu-item">Academic Operations Coordinator</a>
+                <a href="javascript:void(0)" onclick="switchTab('contract-payroll')" class="submenu-item"><i class="fa-solid fa-file-contract"></i> Contract Payroll</a>
                 <a href="javascript:void(0)" onclick="switchTab('notifications')" class="submenu-item">Notifications <span class="nav-badge" id="badge-notifs" style="display:none;">0</span></a>
                 <a href="javascript:void(0)" onclick="switchTab('profile')" class="submenu-item">My Profile</a>
             </div>
@@ -888,7 +908,7 @@ try {
     </div>
     <div id="globalAlert" class="alert"></div>
 
-    <?php if ($is_admin): ?>
+    <?php if ($is_management): ?>
 
     <!-- â”€â”€ NOTIFICATIONS â”€â”€ -->
     <div id="section-notifications" class="section">
@@ -904,7 +924,7 @@ try {
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Audience</label>
-                        <select id="notif-recipient" class="form-control" required>
+                        <select id="notif-recipient" class="form-control" required onchange="handleNotifAudienceChange(this.value)">
                             <option value="all">Everyone (School-Wide)</option>
                             <option value="teacher">Teachers Only</option>
                             <option value="timetabler">Academic Operations Coordinators Only</option>
@@ -913,6 +933,13 @@ try {
                             <option value="parent">Parents Only</option>
                             <option value="student">Students Only</option>
                         </select>
+                    </div>
+                    <div class="form-group" id="notif-individual-wrapper" style="display:none; grid-column: 1 / -1;">
+                        <label id="notif-individual-label">Select Specific Recipient</label>
+                        <select id="notif-target-user" class="form-control">
+                            <option value="all">-- Send to All in this Category --</option>
+                        </select>
+                        <small style="color:var(--gray-600); margin-top:4px; display:block;">Leave as "All" to broadcast to everyone in the selected audience category, or pick a single user.</small>
                     </div>
                     <div class="form-group">
                         <label>Notification Title</label>
@@ -934,7 +961,10 @@ try {
         <div class="panel">
             <div class="panel-header">
                 <h2><i class="fa-solid fa-inbox" style="color:var(--accent);"></i> All Notifications</h2>
-                <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn btn-danger btn-sm" onclick="clearAllNotifications()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                    <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
             </div>
             <div id="notif-feed">
                 <div class="empty-row" style="padding:40px;text-align:center;color:var(--gray-500);">
@@ -944,6 +974,9 @@ try {
             </div>
         </div>
     </div>
+
+    <?php endif; ?>
+    <?php if ($is_admin): ?>
 
     <!-- â”€â”€ DASHBOARD â”€â”€ -->
     <div id="section-dashboard" class="section active">
@@ -999,6 +1032,9 @@ try {
         </div>
     </div>
 
+    <?php endif; ?>
+    <?php if ($is_management): ?>
+
     <!-- â”€â”€ USERS â”€â”€ -->
     <div id="section-users-dir" class="section">
         <div class="page-header"><h1>Active User Registry</h1><p>Browse all provisioned accounts — filtered by role category.</p></div>
@@ -1030,6 +1066,40 @@ try {
             <div class="table-wrap">
                 <table><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Actions</th></tr></thead>
                 <tbody id="users-tbody"><tr><td colspan="6" class="empty-row">Loading…</td></tr></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <?php endif; ?>
+    <?php if ($is_admin): ?>
+
+    <!-- CONTRACT TEACHER PAYROLL -->
+    <div id="section-contract-payroll" class="section">
+        <div class="page-header">
+            <h1>Contract Teacher Payroll</h1>
+            <p>Manage monthly basic salaries and disbursements for contracted teachers (independent of per-session payouts).</p>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Contract Directory</h2>
+                <button class="btn btn-primary" onclick="openAddContractModal()"><i class="fa-solid fa-plus"></i> Add/Edit Contract</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Contract Period</th>
+                            <th>Monthly Basic Salary</th>
+                            <th>Total Disbursed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contract-payroll-tbody">
+                        <tr><td colspan="5" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading contract teachers...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -1257,7 +1327,7 @@ try {
                         </tr>
                     </thead>
                     <tbody id="pending-teachers-tbody">
-                        <tr><td colspan="6" class="empty-row">Loading pending registrationsâ€¦</td></tr>
+                        <tr><td colspan="6" class="empty-row">Loading pending registrations...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1376,7 +1446,7 @@ try {
         </div>
     </div>
 
-    <?php if ($is_admin): ?>
+    <?php if ($is_management): ?>
     <!-- â”€â”€ ATTENDANCE (Module 4) â”€â”€ -->
     <div id="section-attendance" class="section">
         <div class="page-header"><h1>Attendance & OTP Monitor</h1><p>Live overview of lesson check-ins and OTP handshake verifications.</p></div>
@@ -1680,8 +1750,10 @@ try {
             <form onsubmit="uploadResource(event)" enctype="multipart/form-data">
                 <div class="form-grid">
                     <div class="form-group"><label>Resource Title</label><input type="text" id="lib-title" class="form-control" required placeholder="e.g. KCSE 2025 Mathematics Paper 1"></div>
-                    <div class="form-group"><label>Subject Area</label><select id="lib-subject" class="form-control" required><option value="">Select subject…</option></select></div>
-                    <div class="form-group"><label>Target Grade/Level</label><input type="text" id="lib-grade" class="form-control" required placeholder="e.g. Form 4, Grade 8"></div>
+                    <div class="form-group"><label>Category</label><select id="lib-category" class="form-control" name="resource_category" onchange="toggleResourceFields('lib')" required><option value="academic">Academic Material</option><option value="administration">Administration</option><option value="general">General / Public</option></select></div>
+                    <div class="form-group"><label>Access Level</label><select id="lib-access" class="form-control" name="access_type" required><option value="free">Free / Public</option><option value="premium">Premium (Paid)</option><option value="internal">Internal Only</option></select></div>
+                    <div id="lib-subject-group" class="form-group"><label>Subject Area</label><select id="lib-subject" class="form-control" required><option value="">Select subject…</option></select></div>
+                    <div id="lib-grade-group" class="form-group"><label>Target Grade/Level</label><input type="text" id="lib-grade" class="form-control" required placeholder="e.g. Form 4, Grade 8"></div>
                     <div class="form-group"><label>Material Type</label>
                         <select id="lib-type" class="form-control" required>
                             <option value="past_paper">Past Paper</option>
@@ -1707,11 +1779,14 @@ try {
                 </div>
             </div>
             <div class="table-wrap">
-                <table><thead><tr><th>Title</th><th>Subject</th><th>Grade</th><th>Type</th><th>Uploaded</th><th>Actions</th></tr></thead>
+                <table><thead><tr><th>Title</th><th>Subject</th><th>Grade</th><th>Type</th><th>Uploaded</th><th>Access</th><th>Actions</th></tr></thead>
                 <tbody id="library-tbody"><tr><td colspan="6" class="empty-row">Loading…</td></tr></tbody></table>
             </div>
         </div>
     </div>
+    
+    <?php endif; ?>
+    <?php if ($is_admin): ?>
     <!-- ── CURRICULUMS (Module 9 — Admin Only) ── -->
     <div id="section-curriculums" class="section">
         <div class="page-header">
@@ -1980,6 +2055,71 @@ try {
 </div>
 
 <!-- MODAL: Email composer for lead approval -->
+<!-- ADD/EDIT CONTRACT MODAL -->
+<div class="modal-bg" id="modal-contract">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 id="modal-contract-title">Contract Details</h3>
+            <button class="modal-close" style="float:right; border:none; background:none; font-size:1.2rem; cursor:pointer;" onclick="closeModal('modal-contract')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-contract" onsubmit="saveContract(event)">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Teacher <span style="color:red;">*</span></label>
+                <select id="contract-teacher-id" name="teacher_id" class="form-control" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Monthly Basic Salary (KES) <span style="color:red;">*</span></label>
+                <input type="number" step="0.01" id="contract-basic-salary" name="basic_salary" class="form-control" required>
+            </div>
+            <div class="form-grid" style="margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>Start Date <span style="color:red;">*</span></label>
+                    <input type="date" id="contract-start" name="contract_start" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date <span style="color:red;">*</span></label>
+                    <input type="date" id="contract-end" name="contract_end" class="form-control" required>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-contract')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-contract">Save Contract</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ADD DISBURSEMENT MODAL -->
+<div class="modal-bg" id="modal-disbursement">
+    <div class="modal-box" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Record Salary Payment</h3>
+            <button class="modal-close" style="float:right; border:none; background:none; font-size:1.2rem; cursor:pointer;" onclick="closeModal('modal-disbursement')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-disbursement" onsubmit="saveDisbursement(event)">
+            <input type="hidden" id="disburse-contract-teacher-id" name="contract_teacher_id">
+            <p style="margin-bottom: 15px; font-weight: 600; color: var(--primary);" id="disburse-teacher-name"></p>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Amount Paid (KES) <span style="color:red;">*</span></label>
+                <input type="number" step="0.01" id="disburse-amount" name="amount" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Payment Date <span style="color:red;">*</span></label>
+                <input type="date" id="disburse-date" name="payment_date" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Reference (e.g., M-Pesa Code)</label>
+                <input type="text" id="disburse-reference" name="reference" class="form-control">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-disbursement')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-disbursement">Record Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal-bg" id="emailModal">
     <div class="modal-box">
         <div class="modal-header"><h3>Auto-Email Generator</h3>
@@ -2199,8 +2339,10 @@ try {
             <input type="hidden" id="edit-res-id">
             <div class="form-grid">
                 <div class="form-group"><label>Title</label><input type="text" id="edit-res-title" class="form-control" required></div>
-                <div class="form-group"><label>Subject Area</label><select id="edit-res-subject" class="form-control" required></select></div>
-                <div class="form-group"><label>Grade Level</label><input type="text" id="edit-res-grade" class="form-control" required></div>
+                <div class="form-group"><label>Category</label><select id="edit-res-category" class="form-control" name="resource_category" onchange="toggleResourceFields('edit-res')" required><option value="academic">Academic Material</option><option value="administration">Administration</option><option value="general">General / Public</option></select></div>
+                <div class="form-group"><label>Access Level</label><select id="edit-res-access" class="form-control" name="access_type" required><option value="free">Free / Public</option><option value="premium">Premium (Paid)</option><option value="internal">Internal Only</option></select></div>
+                <div id="edit-res-subject-group" class="form-group"><label>Subject Area</label><select id="edit-res-subject" class="form-control" required></select></div>
+                <div id="edit-res-grade-group" class="form-group"><label>Grade Level</label><input type="text" id="edit-res-grade" class="form-control" required></div>
                 <div class="form-group"><label>Material Type</label>
                     <select id="edit-res-type" class="form-control">
                         <option value="past_paper">Past Paper</option>
@@ -2313,11 +2455,28 @@ function getCsrfToken() {
     return typeof CSRF_TOKEN !== 'undefined' ? CSRF_TOKEN : '';
 }
 const originalFetch = window.fetch;
-window.fetch = function(url, options) {
+window.fetch = async function(url, options) {
     if (options && options.method && options.method.toUpperCase() === 'POST' && options.body instanceof FormData) {
         options.body.append('csrf_token', CSRF_TOKEN);
     }
-    return originalFetch(url, options);
+    
+    const response = await originalFetch(url, options);
+    
+    if (response.status === 401) {
+        window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#admin';
+        return response;
+    }
+    
+    const clone = response.clone();
+    try {
+        const data = await clone.json();
+        if (data && data.message === 'session_expired') {
+            window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#admin';
+            return response;
+        }
+    } catch (e) {}
+    
+    return response;
 };
 
 // ————————————————————————————————————————————————
@@ -2393,6 +2552,7 @@ function switchTab(id) {
     if (id === 'library')        loadLibrary();
     if (id === 'settings')       loadAllTermDates();
     if (id === 'roles')          { loadPendingTeachers(); loadRoleParentCurriculums(); }
+    if (id === 'contract-payroll') loadContractTeachers();
     if (id === 'notifications')  loadNotifications();
     if (id === 'curriculums')    loadCurriculums();
     if (id === 'curriculums')    loadCurriculums();
@@ -2442,7 +2602,7 @@ function toggleSidebar() {
 // GLOBAL: Dashboard & Leads & Users
 // ————————————————————————————————————————————————
 function loadSystemData() {
-    fetch('api/api_fetch_leads.php')
+    fetch('api/api_fetch_leads.php?t=' + new Date().getTime())
         .then(r => r.json())
         .then(data => {
             if (data.status !== 'success') return;
@@ -2731,13 +2891,30 @@ function executeEnrollment(e) {
 
 function rejectLead(id) {
     if (!confirm('Reject this lead? This will update their status in the staging table.')) return;
+
+    // Instantly hide the row from the screen
+    if (window.event && window.event.target) {
+        const row = window.event.target.closest('tr');
+        if (row) row.remove();
+    }
+
     const fd = new FormData();
     fd.append('action', 'reject');
     fd.append('lead_id', id);
     fetch('api/api_approve_lead.php', { method: 'POST', body: fd })
-        .then(() => { showAlert('success', 'Lead rejected.'); loadSystemData(); });
+        .then(() => { 
+            showAlert('success', 'Lead rejected.'); 
+            
+            // Decrease notification badges by 1
+            ['badge-leads', 'badge-leads-mobile', 'mc-leads-count', 'm-leads'].forEach(badgeId => {
+                const badge = document.getElementById(badgeId);
+                if (badge) {
+                    const currentVal = parseInt(badge.textContent) || 0;
+                    badge.textContent = Math.max(0, currentVal - 1);
+                }
+            });
+        });
 }
-
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ROLE DELEGATION
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -4377,6 +4554,22 @@ function deleteSubject(id) {
         .then(d => { showAlert(d.status, d.message); openSubjectManager(); });
 }
 
+function toggleResourceFields(prefix) {
+    const cat = document.getElementById(prefix + '-category').value;
+    const subjGrp = document.getElementById(prefix + '-subject-group');
+    const gradeGrp = document.getElementById(prefix + '-grade-group');
+    const subjIn = document.getElementById(prefix + '-subject');
+    const gradeIn = document.getElementById(prefix + '-grade');
+    if (cat === 'academic') {
+        subjGrp.style.display = 'flex'; gradeGrp.style.display = 'flex';
+        subjIn.required = true; gradeIn.required = true;
+    } else {
+        subjGrp.style.display = 'none'; gradeGrp.style.display = 'none';
+        subjIn.required = false; gradeIn.required = false;
+        subjIn.value = ''; gradeIn.value = '';
+    }
+}
+
 function loadLibrary() {
     loadSubjects();
     const filterSubj = document.getElementById('lib-filter-subject')?.value || '';
@@ -4396,15 +4589,24 @@ function loadLibrary() {
                 const thumbHtml = coverSrc
                     ? `<img src="${coverSrc}" style="width:44px;height:34px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);">`
                     : `<span style="display:inline-block;width:44px;height:34px;background:var(--gray-200);border-radius:4px;text-align:center;line-height:34px;"><i class="fa-solid fa-image" style="color:var(--gray-600);font-size:0.75rem;"></i></span>`;
+                let subjCol = `<span class="badge badge-home">${res.subject}</span>`;
+                let gradeCol = res.grade_level;
+                if (res.resource_category !== 'academic') {
+                    subjCol = `<span class="badge badge-pending">${(res.resource_category||'').replace('_', ' ').toUpperCase()}</span>`;
+                    gradeCol = '-';
+                }
+                const accessColors = { free: 'badge-approved', premium: 'badge-home', internal: 'badge-pending' };
+                const accessBadge = `<span class="badge ${accessColors[res.access_type] || 'badge-approved'}">${(res.access_type || 'free').toUpperCase()}</span>`;
                 tbody.innerHTML += `<tr>
                     <td style="display:flex;align-items:center;gap:10px;">${thumbHtml}<div><strong>${res.title}</strong><br><small style="color:var(--gray-600);">${(res.description||'').slice(0,55)}…</small></div></td>
-                    <td><span class="badge badge-home">${res.subject}</span></td>
-                    <td>${res.grade_level}</td>
+                    <td>${subjCol}</td>
+                    <td>${gradeCol}</td>
                     <td><span class="badge ${typeColors[res.material_type] || ''}">${res.material_type.replace('_', ' ')}</span></td>
                     <td><small>${res.created_at?.split(' ')[0]}</small></td>
+                    <td>${accessBadge}</td>
                     <td class="btn-group">
                         <a href="${res.file_path}" target="_blank" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View</a>
-                        <button class="btn btn-primary btn-sm" onclick="openEditResourceModal(${res.id}, \`${btoa(res.title)}\`, \`${btoa(res.description)}\`, \`${btoa(res.subject)}\`, \`${btoa(res.grade_level)}\`, '${res.material_type}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="btn btn-primary btn-sm" onclick="openEditResourceModal(${res.id}, \`${btoa(res.title)}\`, \`${btoa(res.description)}\`, \`${btoa(res.subject)}\`, \`${btoa(res.grade_level)}\`, '${res.material_type}', '${res.resource_category || 'academic'}', '${res.access_type || 'free'}')"><i class="fa-solid fa-pen"></i> Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteResource(${res.id})"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>`;
@@ -4421,6 +4623,8 @@ function uploadResource(e) {
     fd.append('subject', document.getElementById('lib-subject').value);
     fd.append('grade_level', document.getElementById('lib-grade').value);
     fd.append('material_type', document.getElementById('lib-type').value);
+    fd.append('resource_category', document.getElementById('lib-category').value);
+    fd.append('access_type', document.getElementById('lib-access').value);
     fd.append('uploaded_by', 1);
     fd.append('resource_file', document.getElementById('lib-file').files[0]);
     const coverFile = document.getElementById('lib-cover')?.files[0];
@@ -4432,13 +4636,16 @@ function uploadResource(e) {
         .then(data => { showAlert(data.status, data.message); if (data.status === 'success') { e.target.reset(); loadLibrary(); } });
 }
 
-function openEditResourceModal(id, titleB64, descB64, subjectB64, gradeB64, type) {
+function openEditResourceModal(id, titleB64, descB64, subjectB64, gradeB64, type, category, access) {
     document.getElementById('edit-res-id').value    = id;
     document.getElementById('edit-res-title').value = atob(titleB64);
     document.getElementById('edit-res-desc').value  = atob(descB64);
     document.getElementById('edit-res-subject').value = atob(subjectB64);
     document.getElementById('edit-res-grade').value = atob(gradeB64);
     document.getElementById('edit-res-type').value  = type;
+    document.getElementById('edit-res-category').value = category;
+    document.getElementById('edit-res-access').value = access;
+    toggleResourceFields('edit-res');
     document.getElementById('edit-res-file').value  = '';
     if (document.getElementById('edit-res-cover')) document.getElementById('edit-res-cover').value = '';
     document.getElementById('editResourceModal').classList.add('open');
@@ -4454,6 +4661,8 @@ function updateResource(e) {
     fd.append('subject', document.getElementById('edit-res-subject').value);
     fd.append('grade_level', document.getElementById('edit-res-grade').value);
     fd.append('material_type', document.getElementById('edit-res-type').value);
+    fd.append('resource_category', document.getElementById('edit-res-category').value);
+    fd.append('access_type', document.getElementById('edit-res-access').value);
     if (document.getElementById('edit-res-file').files.length > 0) {
         fd.append('resource_file', document.getElementById('edit-res-file').files[0]);
     }
@@ -4493,6 +4702,10 @@ function showAlert(type, msg) {
     el.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => { el.style.display = 'none'; }, 8000);
+}
+
+function showGlobalAlert(msg, type = 'info') {
+    showAlert(type, msg);
 }
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -5515,10 +5728,7 @@ function printStudentTermReport() {
             showAlert('error', 'Network error loading term report details.');
         });
 }
-
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GRADING SCALE MANAGER
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function loadGradingScales() {
     fetch('api/api_settings.php?action=get_grading_scales')
         .then(r => r.json())
@@ -5577,9 +5787,7 @@ function deleteGradeScale(id) {
         });
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // EXAM ANALYSIS & EDITING (Admin Only)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let currentAnalExamId = null;
 let currentAnalSubject = '';
 
@@ -5720,9 +5928,8 @@ function saveAllAnalMarks() {
     });
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // TOPBAR CLOCK
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 function updateTopbarDate() {
     const el = document.getElementById('topbar-date');
     if (!el) return;
@@ -5730,9 +5937,8 @@ function updateTopbarDate() {
     el.textContent = now.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // NOTIFICATIONS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 let allNotifications = [];
 
 function toggleNotifDropdown() {
@@ -5797,6 +6003,24 @@ function loadBellNotifications() {
         .catch(() => {});
 }
 
+function clearAllNotifications() {
+    if (!confirm('Are you sure you want to permanently clear all notifications?')) return;
+
+    const fd = new FormData();
+    fd.append('action', 'clear_all');
+    
+    fetch('api/api_notifications.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if (data.status === 'success') {
+                loadNotifications();
+                loadBellNotifications();
+            }
+        })
+        .catch(() => showAlert('error', 'Failed to clear notifications.'));
+}
+
 function loadNotifications() {
     const feed = document.getElementById('notif-feed');
     if (!feed) return;
@@ -5846,11 +6070,45 @@ function loadNotifications() {
         .catch(() => { feed.innerHTML = '<div class="empty-row">Could not load notifications.</div>'; });
 }
 
+function handleNotifAudienceChange(role) {
+    if (role === undefined) role = document.getElementById('notif-recipient').value;
+    const wrapper = document.getElementById('notif-individual-wrapper');
+    const targetSelect = document.getElementById('notif-target-user');
+    const label = document.getElementById('notif-individual-label');
+
+    if (role === 'all') {
+        wrapper.style.display = 'none';
+        targetSelect.innerHTML = '<option value="all">-- Send to All in Selected Audience --</option>';
+        return;
+    }
+
+    wrapper.style.display = 'flex';
+    label.textContent = 'Select Specific ' + role.charAt(0).toUpperCase() + role.slice(1);
+    targetSelect.innerHTML = '<option value="all">-- Loading users... --</option>';
+
+    fetch(`api/api_notifications.php?action=get_users_by_role&role=${role}`)
+        .then(r => r.json())
+        .then(data => {
+            targetSelect.innerHTML = '<option value="all">-- Send to All in Selected Audience --</option>';
+            if (data.status === 'success' && data.users) {
+                data.users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = u.name + ' (' + (u.email || 'No email') + ')';
+                    targetSelect.appendChild(opt);
+                });
+            }
+        }).catch(() => {
+            targetSelect.innerHTML = '<option value="all">-- Error loading users --</option>';
+        });
+}
+
 function sendNotification(e) {
     e.preventDefault();
     const fd = new FormData();
     fd.append('action', 'send_notification');
     fd.append('recipient_role', document.getElementById('notif-recipient').value);
+    fd.append('target_user_id', document.getElementById('notif-target-user')?.value || 'all');
     fd.append('title',          document.getElementById('notif-title').value);
     fd.append('message',        document.getElementById('notif-msg').value);
     fetch('api/api_notifications.php', { method: 'POST', body: fd })
@@ -5859,6 +6117,7 @@ function sendNotification(e) {
             showAlert(data.status, data.message);
             if (data.status === 'success') {
                 e.target.reset();
+                handleNotifAudienceChange('all');
                 loadNotifications();
             }
         })
@@ -6693,6 +6952,123 @@ function openAddStudentModal() {
 function piDoPrint() {
     window.print();
 }
+// ==========================================
+// CONTRACT TEACHER PAYROLL JS
+// ==========================================
+function loadContractTeachers() {
+    const tbody = document.getElementById('contract-payroll-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
+    
+    fetch('api/api_accounts.php?action=get_contract_teachers')
+        .then(r => r.json())
+        .then(data => {
+            if(data.status !== 'success') {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-row alert-error">${data.message}</td></tr>`;
+                return;
+            }
+            if(!data.contracts || !data.contracts.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No contract teachers found.</td></tr>';
+                return;
+            }
+            window.contractTeachers = data.contracts;
+            tbody.innerHTML = data.contracts.map(c => `
+                <tr>
+                    <td><strong>${c.teacher_name}</strong><br><small style="color:var(--gray-500);">${c.email}</small></td>
+                    <td>${c.contract_start} to ${c.contract_end}</td>
+                    <td><strong>KES ${parseFloat(c.basic_salary).toLocaleString()}</strong></td>
+                    <td><span style="color:#059669;font-weight:700;">KES ${parseFloat(c.total_paid).toLocaleString()}</span></td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openDisbursementModal(${c.id}, '${c.teacher_name.replace(/'/g,"\\'").replace(/"/g,"&quot;")}')" style="margin-right:5px;"><i class="fa-solid fa-money-bill-wave"></i> Pay</button>
+                        <button class="btn btn-outline btn-sm" onclick="deleteContractTeacher(${c.id})" style="color:var(--danger); border-color:var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-row alert-error">Failed to fetch contracts.</td></tr>';
+        });
+}
+
+function openAddContractModal() {
+    document.getElementById('form-contract').reset();
+    document.getElementById('modal-contract-title').textContent = 'Add/Edit Contract';
+    const select = document.getElementById('contract-teacher-id');
+    select.innerHTML = '<option value="">Loading teachers...</option>';
+    openModal('modal-contract');
+
+    fetch('api/api_accounts.php?action=teachers_list')
+        .then(r => r.json())
+        .then(data => {
+            select.innerHTML = '<option value="">-- Select Teacher --</option>';
+            if(data.status === 'success' && data.teachers) {
+                data.teachers.forEach(t => {
+                    select.innerHTML += `<option value="${t.id}">${t.name} (${t.email})</option>`;
+                });
+            }
+        });
+}
+
+function saveContract(e) {
+    e.preventDefault();
+    const fd = new FormData(document.getElementById('form-contract'));
+    fd.append('action', 'save_contract_teacher');
+    setButtonLoading(document.getElementById('btn-save-contract'), true, 'Saving...');
+    
+    fetch('api/api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if(data.status === 'success') {
+                closeModal('modal-contract');
+                loadContractTeachers();
+            }
+        })
+        .catch(() => showAlert('error', 'Request failed.'))
+        .finally(() => setButtonLoading(document.getElementById('btn-save-contract'), false));
+}
+
+function deleteContractTeacher(id) {
+    if(!confirm('Are you sure you want to remove this contract? All related disbursement records will also be deleted.')) return;
+    const fd = new FormData();
+    fd.append('action', 'delete_contract_teacher');
+    fd.append('id', id);
+    fetch('api/api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if(data.status === 'success') loadContractTeachers();
+        })
+        .catch(() => showAlert('error', 'Request failed.'));
+}
+
+function openDisbursementModal(contractId, teacherName) {
+    document.getElementById('form-disbursement').reset();
+    document.getElementById('disburse-contract-teacher-id').value = contractId;
+    document.getElementById('disburse-teacher-name').textContent = 'Paying: ' + teacherName;
+    document.getElementById('disburse-date').value = new Date().toISOString().split('T')[0];
+    openModal('modal-disbursement');
+}
+
+function saveDisbursement(e) {
+    e.preventDefault();
+    const fd = new FormData(document.getElementById('form-disbursement'));
+    fd.append('action', 'add_contract_disbursement');
+    setButtonLoading(document.getElementById('btn-save-disbursement'), true, 'Recording...');
+    
+    fetch('api/api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if(data.status === 'success') {
+                closeModal('modal-disbursement');
+                loadContractTeachers();
+            }
+        })
+        .catch(() => showAlert('error', 'Request failed.'))
+        .finally(() => setButtonLoading(document.getElementById('btn-save-disbursement'), false));
+}
+
 </script>
 
 <!-- Modal: Admin Edit Student Subjects -->

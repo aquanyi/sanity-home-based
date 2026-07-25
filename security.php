@@ -45,7 +45,23 @@ function start_secure_session(): void {
             // Restart a clean session to set the flash message
             session_start();
             $_SESSION['_last_activity'] = time();
-            header('Location: login.html?error=' . urlencode('Your session expired. Please log in again.'));
+            
+            // Check if it's an API request
+            if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/api/') !== false) {
+                http_response_code(401);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['status' => 'error', 'message' => 'session_expired']);
+                exit;
+            }
+            
+            $__script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+            $__hash   = '#parent';
+            if (strpos($__script, 'accounts') !== false)      { $__hash = '#accounts'; }
+            elseif (strpos($__script, 'admin') !== false)     { $__hash = '#admin'; }
+            elseif (strpos($__script, 'teacher') !== false)   { $__hash = '#teachers'; }
+            elseif (strpos($__script, 'timetabler') !== false){ $__hash = '#timetable'; }
+            elseif (strpos($__script, 'student') !== false)   { $__hash = '#student'; }
+            header('Location: login.html?error=' . urlencode('Your session expired. Please log in again.') . $__hash);
             exit;
         }
     }
@@ -59,7 +75,14 @@ function start_secure_session(): void {
             session_unset();
             session_destroy();
             session_start();
-            header('Location: login.html?error=' . urlencode('Security alert: session invalidated. Please log in again.'));
+            $__script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+            $__hash   = '#parent';
+            if (strpos($__script, 'accounts') !== false)      { $__hash = '#accounts'; }
+            elseif (strpos($__script, 'admin') !== false)     { $__hash = '#admin'; }
+            elseif (strpos($__script, 'teacher') !== false)   { $__hash = '#teachers'; }
+            elseif (strpos($__script, 'timetabler') !== false){ $__hash = '#timetable'; }
+            elseif (strpos($__script, 'student') !== false)   { $__hash = '#student'; }
+            header('Location: login.html?error=' . urlencode('Security alert: session invalidated. Please log in again.') . $__hash);
             exit;
         }
     } else {
@@ -102,7 +125,14 @@ function validate_csrf_token(string $submitted_token, bool $is_api = false): voi
             echo json_encode(['status' => 'error', 'message' => 'Invalid or expired security token. Please refresh and try again.']);
         } else {
             http_response_code(403);
-            header('Location: login.html?error=' . urlencode('Security validation failed. Please try again.'));
+            $__script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+            $__hash   = '#parent';
+            if (strpos($__script, 'accounts') !== false)      { $__hash = '#accounts'; }
+            elseif (strpos($__script, 'admin') !== false)     { $__hash = '#admin'; }
+            elseif (strpos($__script, 'teacher') !== false)   { $__hash = '#teachers'; }
+            elseif (strpos($__script, 'timetabler') !== false){ $__hash = '#timetable'; }
+            elseif (strpos($__script, 'student') !== false)   { $__hash = '#student'; }
+            header('Location: login.html?error=' . urlencode('Security validation failed. Please try again.') . $__hash);
         }
         exit;
     }

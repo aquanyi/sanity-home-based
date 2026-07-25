@@ -199,7 +199,7 @@ if ($action === 'approve_teacher' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $emailBody = buildEmailTemplate('Your Teacher Application Has Been Approved', $emailContent);
             $emailSent = sendMail(
                 $pending['email'],
-                'Your Teacher Application Has Been Approved – Sanity Homebased Tuition Academy',
+                'Your Teacher Application Has Been Approved - Sanity Homebased Tuition Academy',
                 $emailBody,
                 MAIL_ADMIN_FROM,
                 MAIL_SCHOOL_NAME,

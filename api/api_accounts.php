@@ -117,6 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     sp.id,
                     u_student.name  AS student_name,
                     u_student.email AS student_email,
+                    u_student.admission_no,
                     u_parent.name   AS parent_name,
                     sp.grade_level,
                     COALESCE(spr.price_online_meet, 0) AS price_online_meet,
@@ -156,8 +157,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // ── Teachers list for dropdown ──
     if ($action === 'teachers_list') {
         try {
-            $stmt = $pdo->query("
-                SELECT id, name FROM teachers ORDER BY name ASC
+            $stmt =$pdo->query("
+                SELECT id, name, email FROM teachers ORDER BY name ASC
             ");
             echo json_encode(['status' => 'success', 'teachers' => $stmt->fetchAll()]);
         } catch (\PDOException $e) {
@@ -664,6 +665,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         exit;
     }
+    // ── Contract Teachers ──
+    if ($action === 'get_contract_teachers') {
+        try {
+            $stmt = $pdo->query("
+                SELECT c.*, t.name as teacher_name, t.email,
+                       COALESCE((SELECT SUM(amount) FROM contract_teacher_disbursements d WHERE d.contract_teacher_id = c.id), 0) as total_paid
+                FROM contract_teachers c
+                JOIN teachers t ON c.teacher_id = t.id
+                ORDER BY t.name ASC
+            ");
+            $contracts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['status' => 'success', 'contracts' => $contracts]);
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'DB error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
 
     echo json_encode(['status' => 'error', 'message' => 'Unknown GET action.']);
     exit;
@@ -1061,6 +1079,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("DELETE FROM extra_expenses WHERE id = ?");
             $stmt->execute([$id]);
             echo json_encode(['status' => 'success', 'message' => '🗑️ Expense deleted.']);
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'DB error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+    // ── Contract Teachers POST Actions ──
+    if ($action === 'save_contract_teacher') {
+        $teacher_id = filter_input(INPUT_POST, 'teacher_id', FILTER_VALIDATE_INT);
+        $basic_salary = filter_input(INPUT_POST, 'basic_salary', FILTER_VALIDATE_FLOAT);
+        $contract_start = $_POST['contract_start'] ?? '';
+        $contract_end = $_POST['contract_end'] ?? '';
+
+        if (!$teacher_id || $basic_salary === false || !$contract_start || !$contract_end) {
+            echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO contract_teachers (teacher_id, basic_salary, contract_start, contract_end) 
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE 
+                basic_salary = VALUES(basic_salary), contract_start = VALUES(contract_start), contract_end = VALUES(contract_end)
+            ");
+            $stmt->execute([$teacher_id, $basic_salary, $contract_start, $contract_end]);
+            echo json_encode(['status' => 'success', 'message' => 'Contract details saved successfully.']);
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'DB error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'delete_contract_teacher') {
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        if (!$id) { echo json_encode(['status' => 'error', 'message' => 'Contract ID required']); exit; }
+        try {
+            $stmt = $pdo->prepare("DELETE FROM contract_teachers WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['status' => 'success', 'message' => 'Contract removed successfully.']);
+        } catch (\PDOException $e) {
+            echo json_encode(['status' => 'error', 'message' => 'DB error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'add_contract_disbursement') {
+        $contract_teacher_id = filter_input(INPUT_POST, 'contract_teacher_id', FILTER_VALIDATE_INT);
+        $amount = filter_input(INPUT_POST, 'amount', FILTER_VALIDATE_FLOAT);
+        $payment_date = $_POST['payment_date'] ?? '';
+        $reference = $_POST['reference'] ?? '';
+
+        if (!$contract_teacher_id || !$amount || !$payment_date) {
+            echo json_encode(['status' => 'error', 'message' => 'Amount and Payment Date are required.']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("INSERT INTO contract_teacher_disbursements (contract_teacher_id, amount, payment_date, reference) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$contract_teacher_id, $amount, $payment_date, $reference]);
+            echo json_encode(['status' => 'success', 'message' => 'Disbursement recorded successfully.']);
         } catch (\PDOException $e) {
             echo json_encode(['status' => 'error', 'message' => 'DB error: ' . $e->getMessage()]);
         }

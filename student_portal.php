@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * student_portal.php
  * Student Dashboard
@@ -255,6 +255,9 @@ $userName = $_SESSION['user_name'];
             <a class="nav-link" onclick="switchView('reports', this)">
                 <i class="fa-regular fa-file-lines"></i> Reports
             </a>
+            <a class="nav-link" onclick="switchView('notifications', this)">
+                <i class="fa-solid fa-bell"></i> Notifications <span class="badge" id="badge-notifs-count" style="background:var(--accent);color:var(--primary);font-size:0.7rem;padding:2px 7px;border-radius:10px;margin-left:auto;font-weight:700;display:none;">0</span>
+            </a>
         </div>
 
         <a href="logout.php" class="logout-btn">
@@ -346,6 +349,37 @@ $userName = $_SESSION['user_name'];
                         <thead><tr><th>Report Title</th><th>Term/Year</th><th>Date Uploaded</th><th>Download</th></tr></thead>
                         <tbody id="reports-table"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- NOTIFICATIONS -->
+            <div id="view-notifications" class="view-section">
+                <div class="info-card">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <i class="fa-solid fa-bell"></i>
+                            <h3>System Notifications & Announcements</h3>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-outline" onclick="loadStudentNotifications()" style="padding:6px 12px; font-size:0.8rem;"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                            <button class="btn" onclick="clearAllStudentNotifications()" style="padding:6px 12px; font-size:0.8rem; background:var(--danger);"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Sender</th>
+                                    <th>Subject</th>
+                                    <th>Message Details</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-notifications-tbody">
+                                <tr><td colspan="4">Loading notifications…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -481,6 +515,10 @@ $userName = $_SESSION['user_name'];
                     `).join('');
                 }
 
+                else if (action === 'notifications') {
+                    loadStudentNotifications();
+                }
+
             } catch (err) {
                 console.error(err);
             }
@@ -488,7 +526,65 @@ $userName = $_SESSION['user_name'];
 
         // Initialize first view
         loadData('profile');
+        loadStudentNotifications(); // Also load this to fetch the badge count
     
+
+function loadStudentNotifications() {
+    const tbody = document.getElementById('student-notifications-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading notifications...</td></tr>';
+    
+    fetch('api/api_notifications.php?action=get_notifications')
+        .then(r => r.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:red;">Failed to load notifications.</td></tr>';
+                return;
+            }
+            const list = data.notifications || [];
+            const badge = document.getElementById('badge-notifs-count');
+            if (badge) {
+                if (list.length > 0) {
+                    badge.textContent = list.length;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);">No notifications yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(n => `
+                <tr>
+                    <td style="font-weight:700;color:var(--primary);">${n.sender_name}</td>
+                    <td style="font-weight:600;">${n.title}</td>
+                    <td style="color:var(--text-dark);white-space:pre-line;">${n.message}</td>
+                    <td style="color:var(--text-muted);font-size:0.8rem;">${n.created_at}</td>
+                </tr>
+            `).join('');
+        })
+        .catch(() => {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:red;">Connection error loading notifications.</td></tr>';
+        });
+}
+
+function clearAllStudentNotifications() {
+    if (!confirm('Are you sure you want to permanently clear all notifications?')) return;
+
+    const fd = new FormData();
+    fd.append('action', 'clear_all');
+    
+    fetch('api/api_notifications.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+            if (data.status === 'success') {
+                loadStudentNotifications();
+            }
+        })
+        .catch(() => alert('Failed to clear notifications.'));
+}
 
 // Loading state utility
 function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
@@ -497,10 +593,10 @@ function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
         if (!btn.hasAttribute('data-original-html')) {
             btn.setAttribute('data-original-html', btn.innerHTML);
         }
-        btn.disabled = True;
-        btn.innerHTML = <i class="fa-solid fa-spinner fa-spin"></i> ;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + loadingText;
     } else {
-        btn.disabled = False;
+        btn.disabled = false;
         if (btn.hasAttribute('data-original-html')) {
             btn.innerHTML = btn.getAttribute('data-original-html');
         }

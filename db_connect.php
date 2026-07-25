@@ -31,4 +31,31 @@ try {
      ]);
      exit;
 }
+
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS contract_teachers (
+            id             INT AUTO_INCREMENT PRIMARY KEY,
+            teacher_id     INT NOT NULL,
+            basic_salary   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            contract_start DATE NOT NULL,
+            contract_end   DATE NOT NULL,
+            created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_teacher (teacher_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS contract_teacher_disbursements (
+            id                 INT AUTO_INCREMENT PRIMARY KEY,
+            contract_teacher_id INT NOT NULL,
+            amount             DECIMAL(10,2) NOT NULL,
+            payment_date       DATE NOT NULL,
+            reference          VARCHAR(150) NULL,
+            created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+} catch (\PDOException $e) {
+    // Log or ignore if already configured
+}
 ?>

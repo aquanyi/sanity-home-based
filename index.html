@@ -2162,7 +2162,7 @@
             const form = document.getElementById('enrollmentForm');
             const formData = new FormData(form);
 
-            fetch('submit_enrollment.php', {
+            fetch('enroll', {
                 method: 'POST',
                 body: formData
             })

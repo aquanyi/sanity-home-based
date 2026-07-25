@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once 'security.php';
 start_secure_session();
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
@@ -533,6 +533,7 @@ session_write_close();
             <a href="javascript:void(0)" onclick="switchTab('pricing')" class="submenu-item">Student Pricing</a>
             <a href="javascript:void(0)" onclick="switchTab('invoices')" class="submenu-item">Invoices &amp; Payments</a>
             <a href="javascript:void(0)" onclick="switchTab('parent-invoice')" class="submenu-item">Parent Invoice</a>
+            <a href="javascript:void(0)" onclick="switchTab('contract-payroll')" class="submenu-item"><i class="fa-solid fa-file-contract"></i> Contract Payroll</a>
             <a href="javascript:void(0)" onclick="switchTab('payroll')" class="submenu-item">Teacher Payroll</a>
         </div>
     </div>
@@ -600,37 +601,37 @@ session_write_close();
                 <h2><i class="fa-solid fa-paper-plane" style="color:var(--accent);"></i> Send a Message</h2>
             </div>
             <form id="form-accounts-send-msg" onsubmit="sendAccountsMessage(event)">
-                <div class="form-grid" style="grid-template-columns: 1fr 2fr; gap:20px;">
-                    <div class="form-group">
-                        <label style="font-weight:600; font-size:0.9rem;">Send To (Recipient) <span style="color:red;">*</span></label>
-                        <div style="position:relative;">
-                            <i class="fa-solid fa-user-gear" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--gray-400);"></i>
-                            <select id="accounts-msg-recipient" name="recipient_role" class="form-control" required style="padding-left:40px;">
-                                <option value="all">Send to All (School-Wide)</option>
-                                <option value="admin">Admin (Principal)</option>
-                                <option value="timetabler">Academic Operations Coordinator (Scheduling)</option>
-                                <option value="teacher">Teachers Only</option>
-                                <option value="parent">Parents Only</option>
-                                <option value="student">Students Only</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label style="font-weight:600; font-size:0.9rem;">Subject / Title <span style="color:red;">*</span></label>
-                        <div style="position:relative;">
-                            <i class="fa-solid fa-heading" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--gray-400);"></i>
-                            <input type="text" id="accounts-msg-title" name="title" class="form-control" required placeholder="e.g. Monthly Tuition Fee Notice / Expense Query" style="padding-left:40px;">
-                        </div>
-                    </div>
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="font-weight:700; font-size:0.84rem; color:var(--dark); text-transform:uppercase; letter-spacing:0.5px;">Audience</label>
+                    <select id="accounts-msg-recipient" name="recipient_role" class="form-control" onchange="loadTargetUsersDropdown(this.value)" required>
+                        <option value="all">School-Wide (All)</option>
+                        <option value="admin">Admin Only</option>
+                        <option value="teacher">Teachers Only</option>
+                        <option value="parent">Parents Only</option>
+                        <option value="student">Students Only</option>
+                    </select>
                 </div>
 
-                <div class="form-group" style="margin-top:16px;">
-                    <label style="font-weight:600; font-size:0.9rem;">Message Content <span style="color:red;">*</span></label>
-                    <textarea id="accounts-msg-body" name="message" class="form-control" rows="4" required placeholder="Write your message here..."></textarea>
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="font-weight:700; font-size:0.84rem; color:var(--dark); text-transform:uppercase; letter-spacing:0.5px;">Select Specific User</label>
+                    <select id="accounts-target-user" name="target_user_id" class="form-control">
+                        <option value="all">-- Send to All in Selected Audience --</option>
+                    </select>
+                    <small style="color:var(--gray-600); font-size:0.78rem; margin-top:4px; display:block;">Leave as "All" to broadcast to everyone in the selected audience category, or pick a single user.</small>
                 </div>
 
-                <div style="margin-top:20px; display:flex; justify-content:flex-end;">
-                    <button type="submit" class="btn btn-primary" style="padding:10px 24px;"><i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Send Message</button>
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label style="font-weight:700; font-size:0.84rem; color:var(--dark); text-transform:uppercase; letter-spacing:0.5px;">Notification Title</label>
+                    <input type="text" id="accounts-msg-title" name="title" class="form-control" required placeholder="e.g. End of Term Reminder">
+                </div>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="font-weight:700; font-size:0.84rem; color:var(--dark); text-transform:uppercase; letter-spacing:0.5px;">Message</label>
+                    <textarea id="accounts-msg-body" name="message" class="form-control" rows="5" required placeholder="Type your notification message here..."></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="submit" class="btn btn-primary" style="padding:10px 24px;"><i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Send Notification</button>
                 </div>
             </form>
         </div>
@@ -639,7 +640,10 @@ session_write_close();
         <div class="panel">
             <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center;">
                 <h2><i class="fa-solid fa-envelope-open-text" style="color:var(--accent);"></i> Message Feed &amp; System Notifications</h2>
-                <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh Feed</button>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-outline btn-sm" onclick="loadNotifications()"><i class="fa-solid fa-rotate-right"></i> Refresh Feed</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearAllNotifications()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                </div>
             </div>
             <div id="notif-feed">
                 <div class="no-data-msg">Loading notifications…</div>
@@ -905,6 +909,37 @@ session_write_close();
             <div id="invoice-empty-state" class="panel empty-row" style="padding:50px;">
                 <i class="fa-solid fa-file-invoice" style="font-size:3rem;color:var(--gray-200);margin-bottom:15px;display:block;"></i>
                 Please select a student and month to load billing details and invoices.
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTRACT TEACHER PAYROLL -->
+    <div id="section-contract-payroll" class="section">
+        <div class="page-header">
+            <h1>Contract Teacher Payroll</h1>
+            <p>Manage monthly basic salaries and disbursements for contracted teachers (independent of per-session payouts).</p>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Contract Directory</h2>
+                <button class="btn btn-primary" onclick="openAddContractModal()"><i class="fa-solid fa-plus"></i> Add/Edit Contract</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Contract Period</th>
+                            <th>Monthly Basic Salary</th>
+                            <th>Total Disbursed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contract-payroll-tbody">
+                        <tr><td colspan="5" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading contract teachers...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -1368,7 +1403,7 @@ session_write_close();
                         <option value="inventory">📦 Inventory</option>
                         <option value="utility">⚡ Utilities</option>
                         <option value="general_repairs">🔧 General Repairs</option>
-                        <option value="petty_cash">☕? Petty Cash</option>
+                        <option value="petty_cash">☕ Petty Cash</option>
                     </select>
                 </div>
                 <div style="display:flex;gap:8px;">
@@ -1500,7 +1535,7 @@ session_write_close();
                         <option value="school">🏫 School (1-on-1)</option>
                         <option value="home_visit">🏠 Home Visit</option>
                         <option value="online_meet">🎥 Online (Google Meet)</option>
-                        <option value="online_zoom">📹'📹 Online (Zoom)</option>
+                        <option value="online_zoom">💻 Online (Zoom)</option>
                     </select>
                 </div>
             </div>
@@ -1554,7 +1589,7 @@ session_write_close();
                     </table>
                 </div>
                 <div class="panel" style="border-top:4px solid #EF4444;">
-                    <div class="panel-header"><h2 style="color:#EF4444;">📉'📉 Expenses Overview</h2></div>
+                    <div class="panel-header"><h2 style="color:#EF4444;">📉 Expenses Overview</h2></div>
                     <table style="width:100%;border-collapse:collapse;font-size:0.9rem;" id="fin-exp-overview-table"></table>
                 </div>
             </div>
@@ -1620,6 +1655,71 @@ session_write_close();
 </main>
 
 <!-- MODAL: Add / Edit Expense -->
+<!-- ADD/EDIT CONTRACT MODAL -->
+<div class="modal-bg" id="modal-contract">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 id="modal-contract-title">Contract Details</h3>
+            <button class="modal-close" style="float:right; border:none; background:none; font-size:1.2rem; cursor:pointer;" onclick="closeModal('modal-contract')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-contract" onsubmit="saveContract(event)">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Teacher <span style="color:red;">*</span></label>
+                <select id="contract-teacher-id" name="teacher_id" class="form-control" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Monthly Basic Salary (KES) <span style="color:red;">*</span></label>
+                <input type="number" step="0.01" id="contract-basic-salary" name="basic_salary" class="form-control" required>
+            </div>
+            <div class="form-grid" style="margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>Start Date <span style="color:red;">*</span></label>
+                    <input type="date" id="contract-start" name="contract_start" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date <span style="color:red;">*</span></label>
+                    <input type="date" id="contract-end" name="contract_end" class="form-control" required>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-contract')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-contract">Save Contract</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ADD DISBURSEMENT MODAL -->
+<div class="modal-bg" id="modal-disbursement">
+    <div class="modal-box" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Record Salary Payment</h3>
+            <button class="modal-close" style="float:right; border:none; background:none; font-size:1.2rem; cursor:pointer;" onclick="closeModal('modal-disbursement')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-disbursement" onsubmit="saveDisbursement(event)">
+            <input type="hidden" id="disburse-contract-teacher-id" name="contract_teacher_id">
+            <p style="margin-bottom: 15px; font-weight: 600; color: var(--primary);" id="disburse-teacher-name"></p>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Amount Paid (KES) <span style="color:red;">*</span></label>
+                <input type="number" step="0.01" id="disburse-amount" name="amount" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Payment Date <span style="color:red;">*</span></label>
+                <input type="date" id="disburse-date" name="payment_date" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Reference (e.g., M-Pesa Code)</label>
+                <input type="text" id="disburse-reference" name="reference" class="form-control">
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-disbursement')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-disbursement">Record Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal-bg" id="expenseModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -1738,6 +1838,27 @@ session_write_close();
 </div>
 
 <script>
+const originalFetch = window.fetch;
+window.fetch = async function(url, options) {
+    const response = await originalFetch(url, options);
+    
+    if (response.status === 401) {
+        window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#accounts';
+        return response;
+    }
+    
+    const clone = response.clone();
+    try {
+        const data = await clone.json();
+        if (data && data.message === 'session_expired') {
+            window.location.href = 'login.html?error=Your+session+has+expired.+Please+log+in+again.#accounts';
+            return response;
+        }
+    } catch (e) {}
+    
+    return response;
+};
+
 let allSessions = [];
 let allMonthly = [];
 let allPricing = [];
@@ -1775,6 +1896,7 @@ function switchTab(id, navEl) {
     if (id === 'pricing') loadPricing();
     if (id === 'invoices') loadInvoiceDropdowns();
     if (id === 'parent-invoice') initParentInvoice();
+    if (id === 'contract-payroll') loadContractTeachers();
     if (id === 'payroll') loadPayrollTab();
     if (id === 'expenses') initExpensesTab();
     if (id === 'expreport') initReportTab();
@@ -1834,7 +1956,18 @@ function showAlert(type, msg) {
     setTimeout(() => el.style.display = 'none', 7000);
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showGlobalAlert(msg, type = 'info') {
+    showAlert(type, msg);
+}
+
+function openModal(id) { 
+    const el = document.getElementById(id);
+    if (el) el.classList.add('open'); 
+}
+
+function closeModal(id) { 
+    document.getElementById(id).classList.remove('open'); 
+}
 
 // ---------------------------------------------
 // LOAD SESSIONS
@@ -2014,7 +2147,7 @@ function loadPricing() {
             }
             tbody.innerHTML = allPricing.map(s => `
                 <tr>
-                    <td><strong>${s.student_name}</strong><br><small style="color:var(--gray-600);">${s.student_email}</small></td>
+                    <td><strong>${s.student_name}</strong><br><small style="color:var(--gray-600);">${s.admission_no || 'No Adm No.'}</small></td>
                     <td>${s.parent_name}</td>
                     <td>${s.grade_level}</td>
                     <td>
@@ -2341,6 +2474,123 @@ function emailInvoice() {
 }
 
 // ---------------------------------------------
+// ==========================================
+// CONTRACT TEACHER PAYROLL JS
+// ==========================================
+function loadContractTeachers() {
+    const tbody = document.getElementById('contract-payroll-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
+    
+    fetch('api/api_accounts.php?action=get_contract_teachers')
+        .then(r => r.json())
+        .then(data => {
+            if(data.status !== 'success') {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-row alert-error">${data.message}</td></tr>`;
+                return;
+            }
+            if(!data.contracts || !data.contracts.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No contract teachers found.</td></tr>';
+                return;
+            }
+            window.contractTeachers = data.contracts;
+            tbody.innerHTML = data.contracts.map(c => `
+                <tr>
+                    <td><strong>${c.teacher_name}</strong><br><small style="color:var(--gray-500);">${c.email}</small></td>
+                    <td>${c.contract_start} to ${c.contract_end}</td>
+                    <td><strong>KES ${parseFloat(c.basic_salary).toLocaleString()}</strong></td>
+                    <td><span style="color:#059669;font-weight:700;">KES ${parseFloat(c.total_paid).toLocaleString()}</span></td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openDisbursementModal(${c.id}, '${c.teacher_name.replace(/'/g,"\\'").replace(/"/g,"&quot;")}')" style="margin-right:5px;"><i class="fa-solid fa-money-bill-wave"></i> Pay</button>
+                        <button class="btn btn-outline btn-sm" onclick="deleteContractTeacher(${c.id})" style="color:var(--danger); border-color:var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-row alert-error">Failed to fetch contracts.</td></tr>';
+        });
+}
+
+function openAddContractModal() {
+    document.getElementById('form-contract').reset();
+    document.getElementById('modal-contract-title').textContent = 'Add/Edit Contract';
+    const select = document.getElementById('contract-teacher-id');
+    select.innerHTML = '<option value="">Loading teachers...</option>';
+    openModal('modal-contract');
+
+    fetch('api/api_accounts.php?action=teachers_list')
+        .then(r => r.json())
+        .then(data => {
+            select.innerHTML = '<option value="">-- Select Teacher --</option>';
+            if(data.status === 'success' && data.teachers) {
+                data.teachers.forEach(t => {
+                    select.innerHTML += `<option value="${t.id}">${t.name} (${t.email})</option>`;
+                });
+            }
+        });
+}
+
+function saveContract(e) {
+    e.preventDefault();
+    const fd = new FormData(document.getElementById('form-contract'));
+    fd.append('action', 'save_contract_teacher');
+    setButtonLoading(document.getElementById('btn-save-contract'), true, 'Saving...');
+    
+    fetch('api/api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if(data.status === 'success') {
+                closeModal('modal-contract');
+                loadContractTeachers();
+            }
+        })
+        .catch(() => showAlert('error', 'Request failed.'))
+        .finally(() => setButtonLoading(document.getElementById('btn-save-contract'), false));
+}
+
+function deleteContractTeacher(id) {
+    if(!confirm('Are you sure you want to remove this contract? All related disbursement records will also be deleted.')) return;
+    const fd = new FormData();
+    fd.append('action', 'delete_contract_teacher');
+    fd.append('id', id);
+    fetch('api/api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if(data.status === 'success') loadContractTeachers();
+        })
+        .catch(() => showAlert('error', 'Request failed.'));
+}
+
+function openDisbursementModal(contractId, teacherName) {
+    document.getElementById('form-disbursement').reset();
+    document.getElementById('disburse-contract-teacher-id').value = contractId;
+    document.getElementById('disburse-teacher-name').textContent = 'Paying: ' + teacherName;
+    document.getElementById('disburse-date').value = new Date().toISOString().split('T')[0];
+    openModal('modal-disbursement');
+}
+
+function saveDisbursement(e) {
+    e.preventDefault();
+    const fd = new FormData(document.getElementById('form-disbursement'));
+    fd.append('action', 'add_contract_disbursement');
+    setButtonLoading(document.getElementById('btn-save-disbursement'), true, 'Recording...');
+    
+    fetch('api/api_accounts.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            showAlert(data.status, data.message);
+            if(data.status === 'success') {
+                closeModal('modal-disbursement');
+                loadContractTeachers();
+            }
+        })
+        .catch(() => showAlert('error', 'Request failed.'))
+        .finally(() => setButtonLoading(document.getElementById('btn-save-disbursement'), false));
+}
+
 // TUTOR PAYROLL & RATES DIRECTORY JS
 // ---------------------------------------------
 function setPayrollSubTab(tab) {
@@ -2990,7 +3240,7 @@ const expCategoryMeta = {
     },
     petty_cash: {
         label: 'Petty Cash',
-        hint: '☕? Track small daily expenses — tea, lunch, snacks, printing, and minor miscellaneous costs.',
+        hint: '☕ Track small daily expenses — tea, lunch, snacks, printing, and minor miscellaneous costs.',
         color: '#8B5CF6',
         icon: 'fa-mug-hot'
     }
@@ -3524,7 +3774,7 @@ const finCatMeta = {
     inventory:       { label:'Inventory',      icon:'📦', color:'#3B82F6' },
     utility:         { label:'Utilities',       icon:'⚡',  color:'#10B981' },
     general_repairs: { label:'General Repairs', icon:'🔧', color:'#F59E0B' },
-    petty_cash:      { label:'Petty Cash',      icon:'☕?',  color:'#8B5CF6' },
+    petty_cash:      { label:'Petty Cash',      icon:'☕',  color:'#8B5CF6' },
 };
 
 function fmt2(n) {
@@ -3907,9 +4157,35 @@ function printFinReport() {
     </body></html>`);
     win.document.close();
 }
+
+function loadTargetUsersDropdown(role) {
+    const userSel = document.getElementById('accounts-target-user');
+    if (!userSel) return;
+    userSel.innerHTML = '<option value="all">-- Loading users... --</option>';
+    
+    if (role === 'all' || role === 'admin') {
+        userSel.innerHTML = '<option value="all">-- Send to All in Selected Audience --</option>';
+        return;
+    }
+
+    fetch(`api/api_notifications.php?action=get_users_by_role&role=${role}`)
+        .then(r => r.json())
+        .then(data => {
+            userSel.innerHTML = '<option value="all">-- Send to All in Selected Audience --</option>';
+            if (data.status === 'success' && data.users) {
+                data.users.forEach(u => {
+                    userSel.innerHTML += `<option value="${u.id}">${u.name} (${u.email || 'No email'})</option>`;
+                });
+            }
+        }).catch(() => {
+            userSel.innerHTML = '<option value="all">-- Error loading users --</option>';
+        });
+}
+
 function sendAccountsMessage(e) {
     e.preventDefault();
     const recipient = document.getElementById('accounts-msg-recipient').value;
+    const targetUser = document.getElementById('accounts-target-user') ? document.getElementById('accounts-target-user').value : 'all';
     const title     = document.getElementById('accounts-msg-title').value.trim();
     const message   = document.getElementById('accounts-msg-body').value.trim();
 
@@ -3921,6 +4197,7 @@ function sendAccountsMessage(e) {
     const fd = new FormData();
     fd.append('action', 'send_notification');
     fd.append('recipient_role', recipient);
+    fd.append('target_user_id', targetUser !== 'all' ? targetUser : '');
     fd.append('title', title);
     fd.append('message', message);
 
@@ -3930,6 +4207,7 @@ function sendAccountsMessage(e) {
             showAlert(data.status, data.message);
             if (data.status === 'success') {
                 document.getElementById('form-accounts-send-msg').reset();
+                loadTargetUsersDropdown('all');
                 loadNotifications();
             }
         })
@@ -3971,6 +4249,28 @@ function loadNotifications() {
         });
 }
 
+function clearAllNotifications() {
+    if (!confirm('Are you sure you want to permanently clear all notifications?')) return;
+
+    const fd = new FormData();
+    fd.append('action', 'clear_all');
+    
+    fetch('api/api_notifications.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (typeof showAlert === 'function') {
+                showAlert(data.status, data.message);
+            } else {
+                alert(data.message);
+            }
+            if (data.status === 'success') {
+                if (typeof loadNotifications === 'function') loadNotifications();
+                if (typeof loadBellNotifications === 'function') loadBellNotifications();
+            }
+        })
+        .catch(() => alert('Failed to clear notifications.'));
+}
+
 function formatNotifDate(dt) {
     if (!dt) return '';
     const d = new Date(dt);
@@ -3990,10 +4290,10 @@ function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
         if (!btn.hasAttribute('data-original-html')) {
             btn.setAttribute('data-original-html', btn.innerHTML);
         }
-        btn.disabled = True;
-        btn.innerHTML = <i class="fa-solid fa-spinner fa-spin"></i> ;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + loadingText;
     } else {
-        btn.disabled = False;
+        btn.disabled = false;
         if (btn.hasAttribute('data-original-html')) {
             btn.innerHTML = btn.getAttribute('data-original-html');
         }

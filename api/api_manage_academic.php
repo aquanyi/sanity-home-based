@@ -29,7 +29,7 @@ if (in_array($action, ['create_exam', 'schedule_exam_session'])) {
         exit;
     }
 } elseif (in_array($action, ['submit_marks', 'upload_assignment', 'teacher_exams', 'session_students'])) {
-    if (!in_array($role, ['admin', 'teacher'])) {
+    if (!in_array($role, ['admin', 'teacher', 'timetabler'])) {
         http_response_code(403);
         echo json_encode(['status' => 'error', 'message' => 'Access denied. Admin or Teacher role required.']);
         exit;

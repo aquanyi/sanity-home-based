@@ -34,7 +34,7 @@ if (in_array($action, $admin_actions)) {
         exit;
     }
 } elseif (in_array($action, $teacher_actions)) {
-    if (!in_array($role, ['admin', 'teacher'])) {
+    if (!in_array($role, ['admin', 'teacher', 'timetabler'])) {
         http_response_code(403);
         echo json_encode(['status' => 'error', 'message' => 'Access denied. Admin or Teacher role required.']);
         exit;
@@ -74,7 +74,7 @@ if ($action === 'submit_report') {
         ");
         $stmt->execute([$student_id, $teacher_id, $report_type, $period, $topics, $performance, $recs]);
         echo json_encode(['status' => 'success', 'message' => 'Report submitted for Admin moderation. It is currently hidden from parents/students.', 'report_id' => $pdo->lastInsertId()]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -97,7 +97,7 @@ if ($action === 'edit_report') {
         $stmt = $pdo->prepare("UPDATE academic_reports SET topics_covered=?, student_performance_notes=?, teacher_recommendations=? WHERE id=?");
         $stmt->execute([$topics, $performance, $recs, $report_id]);
         echo json_encode(['status' => 'success', 'message' => 'Report updated. Admin override applied.']);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -157,7 +157,7 @@ if ($action === 'create_admin_report') {
         }
 
         echo json_encode(['status' => 'success', 'message' => '✅ Accumulated report generated and released to parent successfully.', 'report_id' => $report_id]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -216,7 +216,7 @@ if ($action === 'approve_report') {
         sendMail($to, $subject, $body, MAIL_INFO_FROM, MAIL_SCHOOL_NAME . ' — Reports', true);
 
         echo json_encode(['status' => 'success', 'message' => "✅ Report approved and released. Parent ({$report['parent_email']}) has been notified.","report_released_for" => $report['student_name']]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -255,7 +255,7 @@ if ($action === 'send_nudge') {
         sendMail($to, $subject, $body, MAIL_ADMIN_FROM, MAIL_SCHOOL_NAME . ' — Administration', true);
 
         echo json_encode(['status' => 'success', 'message' => "🚨 Grading nudge dispatched to {$session['teacher_name']} ({$session['teacher_email']})."]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -292,7 +292,7 @@ if ($action === 'auto_nudge') {
         }
 
         echo json_encode(['status' => 'success', 'message' => "Auto-nudge scan complete. {$notified} overdue teacher(s) notified."]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -375,7 +375,7 @@ if ($action === 'accumulate_daily_reports') {
                 'teacher_id' => ($teacher_id > 0) ? $teacher_id : $last_teacher_id
             ]
         ]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -428,7 +428,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $subjectResults = $rStmt->fetchAll();
 
             // Grading scales
-            $scales = $pdo->query("SELECT * FROM grading_scales ORDER BY grade_level ASC, min_mark DESC")->fetchAll();
+            $scalesStmt = $pdo->query("SELECT * FROM grading_scales ORDER BY grade_level ASC, min_mark DESC");
+            if ($scalesStmt === false) {
+                throw new \Exception("Database error: could not fetch grading scales.");
+            }
+            $scales = $scalesStmt->fetchAll();
             $getGrade = function($marks, $grade_level, $curriculum_id = null) use ($scales) {
                 // Try curriculum-specific scale first
                 foreach ($scales as $s) {
@@ -480,7 +484,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'overall_remark'    => $overall['remark'],
                 'summarized_remark' => $summarizedRemark,
             ]);
-        } catch (\PDOException $e) {
+        } catch (\Throwable $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         exit;
@@ -546,7 +550,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $results = $rStmt->fetchAll();
             
             // 4. Fetch grading scales to compute points and grades
-            $scales = $pdo->query("SELECT * FROM grading_scales ORDER BY grade_level ASC, min_mark DESC")->fetchAll();
+            $scalesStmt = $pdo->query("SELECT * FROM grading_scales ORDER BY grade_level ASC, min_mark DESC");
+            if ($scalesStmt === false) {
+                throw new \Exception("Database error: could not fetch grading scales.");
+            }
+            $scales = $scalesStmt->fetchAll();
             $getGradeAndPts = function($marks, $grade_level, $curriculum_id) use ($scales) {
                 // Try curriculum-specific scale first
                 foreach ($scales as $s) {
@@ -727,7 +735,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // ── Default: reports moderation queue ──
     try {
-        $pending = $pdo->query("
+        $stmt = $pdo->query("
             SELECT ar.*, sp.grade_level,
                    u_student.name as student_name,
                    u_teacher.name as teacher_name,
@@ -738,10 +746,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             JOIN teachers u_teacher ON ar.teacher_id = u_teacher.id
             JOIN parents u_parent ON sp.parent_id = u_parent.id
             ORDER BY ar.status ASC, ar.created_at DESC
-        ")->fetchAll();
+        ");
+        if ($stmt === false) {
+            throw new \Exception("Database error in reports query: " . print_r($pdo->errorInfo(), true));
+        }
+        $pending = $stmt->fetchAll();
 
         // Overdue exam sessions (deadline passed, no marks submitted)
-        $overdue = $pdo->query("
+        $stmt2 = $pdo->query("
             SELECT es.id, es.subject, se.exam_name, se.submission_deadline,
                    u.name as teacher_name, u.email as teacher_email,
                    (SELECT COUNT(*) FROM exam_results er WHERE er.exam_session_id = es.id) as marks_submitted
@@ -749,10 +761,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             JOIN school_exams se ON es.exam_id = se.id
             JOIN teachers u ON es.invigilator_teacher_id = u.id
             WHERE se.submission_deadline < NOW()
-        ")->fetchAll();
+        ");
+        if ($stmt2 === false) {
+            throw new \Exception("Database error in overdue query: " . print_r($pdo->errorInfo(), true));
+        }
+        $overdue = $stmt2->fetchAll();
 
         echo json_encode(['status' => 'success', 'reports' => $pending, 'overdue_sessions' => $overdue]);
-    } catch (\PDOException $e) {
+    } catch (\Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -760,3 +776,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 echo json_encode(['status' => 'error', 'message' => 'Unknown action.']);
 ?>
+
